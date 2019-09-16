@@ -2,152 +2,268 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
-	"github.com/victorsteven/fullstack/api/responses"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 )
 
-func (server *Server) CreatePost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) CreatePost(c *gin.Context) {
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(c.Request.Body)
+
 	if err != nil {
-		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  "Unable to get request",
+		})
 		return
 	}
 	post := models.Post{}
-	err = json.Unmarshal(body, &post)
-	if err != nil {
-		responses.ERROR(w, http.StatusUnprocessableEntity, err)
-		return
-	}
+
+	json.Unmarshal(body, &post)
+
+	// if err != nil {
+	// 	c.JSON(http.StatusUnprocessableEntity, gin.H{
+	// 		"status": http.StatusUnprocessableEntity,
+	// 		"error":  "Unable to unmarshal body",
+	// 	})
+	// 	return
+	// }
+
 	post.Prepare()
-	err = post.Validate()
-	if err != nil {
-		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+	errorMessages := post.Validate()
+	if len(errorMessages) > 0 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errorMessages,
+		})
 		return
 	}
-	uid, err := auth.ExtractTokenID(r)
+	uid, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  "Unauthorized",
+		})
 		return
 	}
 	if uid != post.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  "Unauthorized",
+		})
 		return
 	}
 	postCreated, err := post.SavePost(server.DB)
+
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
-		responses.ERROR(w, http.StatusInternalServerError, formattedError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  formattedError,
+		})
 		return
 	}
-	w.Header().Set("Lacation", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, postCreated.ID))
-	responses.JSON(w, http.StatusCreated, postCreated)
+	c.JSON(http.StatusCreated, gin.H{
+		"status":   http.StatusCreated,
+		"response": postCreated,
+	})
 }
 
-func (server *Server) GetPosts(w http.ResponseWriter, r *http.Request) {
+func (server *Server) GetPosts(c *gin.Context) {
 
 	post := models.Post{}
 
 	posts, err := post.FindAllPosts(server.DB)
 	if err != nil {
-		responses.ERROR(w, http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  "No Post Found",
+		})
 		return
 	}
-	responses.JSON(w, http.StatusOK, posts)
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": posts,
+	})
 }
 
-func (server *Server) GetPost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) GetPost(c *gin.Context) {
 
-	vars := mux.Vars(r)
-	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	postID := c.Param("id")
+	pid, err := strconv.ParseUint(postID, 10, 64)
 	if err != nil {
-		responses.ERROR(w, http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"error":  "Invalid Request",
+		})
 		return
 	}
 	post := models.Post{}
 
 	postReceived, err := post.FindPostByID(server.DB, pid)
 	if err != nil {
-		responses.ERROR(w, http.StatusInternalServerError, err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  "Record Not Found",
+		})
 		return
 	}
-	responses.JSON(w, http.StatusOK, postReceived)
+	c.JSON(http.StatusCreated, gin.H{
+		"status":   http.StatusCreated,
+		"response": postReceived,
+	})
 }
 
-func (server *Server) UpdatePost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) UpdatePost(c *gin.Context) {
 
-	vars := mux.Vars(r)
-	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	postID := c.Param("id")
+
+	// Check if the post id is valid
+	pid, err := strconv.ParseUint(postID, 10, 64)
 	if err != nil {
-		responses.ERROR(w, http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"error":  "Invalid Request",
+		})
 		return
 	}
-	body, err := ioutil.ReadAll(r.Body)
+
+	//CHeck if the auth token is valid and  get the user id from it
+	uid, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
-		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  "Unauthorized",
+		})
 		return
 	}
+
+	// Check if the post exist
 	post := models.Post{}
-	err = json.Unmarshal(body, &post)
+	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
 	if err != nil {
-		responses.ERROR(w, http.StatusUnprocessableEntity, err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  "Post Not Found",
+		})
 		return
 	}
-	post.Prepare()
-	err = post.Validate()
-	if err != nil {
-		responses.ERROR(w, http.StatusUnprocessableEntity, err)
-		return
-	}
-	uid, err := auth.ExtractTokenID(r)
-	if err != nil {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
+
+	// If a user attempt to update a post not belonging to him
 	if uid != post.AuthorID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  "Unauthorized",
+		})
 		return
 	}
-	postUpdated, err := post.UpdateAPost(server.DB, pid)
+
+	// Read the data posted
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  "Unable to get request",
+		})
+		return
+	}
+
+	// Start processing the request data
+	postUpdate := models.Post{}
+	err = json.Unmarshal(body, &postUpdate)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  "Invalid data",
+		})
+		return
+	}
+
+	postUpdate.Prepare()
+	errMessages := postUpdate.Validate()
+	if len(errMessages) > 0 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errMessages,
+		})
+		return
+	}
+
+	postUpdated, err := postUpdate.UpdateAPost(server.DB, pid)
 
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
-		responses.ERROR(w, http.StatusInternalServerError, formattedError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  formattedError,
+		})
 		return
 	}
-	responses.JSON(w, http.StatusOK, postUpdated)
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": postUpdated,
+	})
 }
 
-func (server *Server) DeletePost(w http.ResponseWriter, r *http.Request) {
+func (server *Server) DeletePost(c *gin.Context) {
 
-	vars := mux.Vars(r)
+	postID := c.Param("id")
 
+	// Is a valid post id given to us?
+	pid, err := strconv.ParseUint(postID, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"error":  "Invalid Request",
+		})
+		return
+	}
+	// Is this user authenticated?
+	uid, err := auth.ExtractTokenID(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  "Unauthorized",
+		})
+		return
+	}
+	// Check if the post exist
 	post := models.Post{}
+	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  "Post Not Found",
+		})
+		return
+	}
 
-	pid, err := strconv.ParseUint(vars["id"], 10, 64)
-	if err != nil {
-		responses.ERROR(w, http.StatusBadRequest, err)
+	// Is the authenticated user, the owner of this post?
+	if uid != post.AuthorID {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  "Unauthorized",
+		})
 		return
 	}
-	uid, err := auth.ExtractTokenID(r)
-	if err != nil {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
-		return
-	}
+
+	// If all the conditions are met, delete the post
 	_, err = post.DeleteAPost(server.DB, pid, uid)
 	if err != nil {
-		responses.ERROR(w, http.StatusBadRequest, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  c.Error(err),
+		})
 		return
 	}
-	w.Header().Set("Entity", fmt.Sprintf("%d", pid))
-	responses.JSON(w, http.StatusNoContent, "")
+	c.JSON(http.StatusNoContent, gin.H{
+		"status": http.StatusNoContent,
+		"error":  "Post Deleted",
+	})
 }

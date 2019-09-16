@@ -28,18 +28,24 @@ func (p *Post) Prepare() {
 	p.UpdatedAt = time.Now()
 }
 
-func (p *Post) Validate() error {
+func (p *Post) Validate() []string {
+
+	var errorMessages []string
+	var err error
 
 	if p.Title == "" {
-		return errors.New("Required Title")
+		err = errors.New("Required Nickname")
+		errorMessages = append(errorMessages, err.Error())
 	}
 	if p.Content == "" {
-		return errors.New("Required Content")
+		err = errors.New("Required Content")
+		errorMessages = append(errorMessages, err.Error())
 	}
 	if p.AuthorID < 1 {
-		return errors.New("Required Author")
+		err = errors.New("Required Author")
+		errorMessages = append(errorMessages, err.Error())
 	}
-	return nil
+	return errorMessages
 }
 
 func (p *Post) SavePost(db *gorm.DB) (*Post, error) {
@@ -118,9 +124,6 @@ func (p *Post) DeleteAPost(db *gorm.DB, pid uint64, uid uint32) (int64, error) {
 	db = db.Debug().Model(&Post{}).Where("id = ? and author_id = ?", pid, uid).Take(&Post{}).Delete(&Post{})
 
 	if db.Error != nil {
-		if gorm.IsRecordNotFoundError(db.Error) {
-			return 0, errors.New("Post not found")
-		}
 		return 0, db.Error
 	}
 	return db.RowsAffected, nil

@@ -5,21 +5,33 @@ import (
 	"strings"
 )
 
-func FormatError(err string) error {
+var errorMessages []string
+var err error
 
-	if strings.Contains(err, "nickname") {
-		return errors.New("Nickname Already Taken")
-	}
+func FormatError(errString string) []string {
 
-	if strings.Contains(err, "email") {
-		return errors.New("Email Already Taken")
+	if strings.Contains(errString, "nickname") {
+		err = errors.New("Nickname Already Taken")
+		errorMessages = append(errorMessages, err.Error())
 	}
-
-	if strings.Contains(err, "title") {
-		return errors.New("Title Already Taken")
+	if strings.Contains(errString, "email") {
+		err = errors.New("Email Already Taken")
+		errorMessages = append(errorMessages, err.Error())
 	}
-	if strings.Contains(err, "hashedPassword") {
-		return errors.New("Incorrect Password")
+	if strings.Contains(errString, "title") {
+		err = errors.New("Title Already Taken")
+		errorMessages = append(errorMessages, err.Error())
 	}
-	return errors.New("Incorrect Details")
+	if strings.Contains(errString, "hashedPassword") {
+		err = errors.New("Incorrect Password")
+		errorMessages = append(errorMessages, err.Error())
+	}
+	if len(errorMessages) > 0 {
+		return errorMessages
+	}
+	if len(errorMessages) == 0 {
+		errorMessages = append(errorMessages, "Incorrect Details")
+		return errorMessages
+	}
+	return nil
 }

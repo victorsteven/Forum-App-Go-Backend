@@ -46,50 +46,61 @@ func (u *User) Prepare() {
 	u.UpdatedAt = time.Now()
 }
 
-func (u *User) Validate(action string) error {
+func (u *User) Validate(action string) []string {
+
+	var errorMessages []string
+	var err error
+
 	switch strings.ToLower(action) {
 	case "update":
 		if u.Nickname == "" {
-			return errors.New("Required Nickname")
+			err = errors.New("Required Nickname")
+			errorMessages = append(errorMessages, err.Error())
 		}
 		if u.Password == "" {
-			return errors.New("Required Password")
+			err = errors.New("Required Password")
+			errorMessages = append(errorMessages, err.Error())
 		}
 		if u.Email == "" {
-			return errors.New("Required Email")
+			err = errors.New("Required Email")
+			errorMessages = append(errorMessages, err.Error())
 		}
-		if err := checkmail.ValidateFormat(u.Email); err != nil {
-			return errors.New("Invalid Email")
+		if err = checkmail.ValidateFormat(u.Email); err != nil {
+			err = errors.New("Invalid Email")
+			errorMessages = append(errorMessages, err.Error())
 		}
-
-		return nil
 	case "login":
 		if u.Password == "" {
-			return errors.New("Required Password")
+			err = errors.New("Required Password")
+			errorMessages = append(errorMessages, err.Error())
 		}
 		if u.Email == "" {
-			return errors.New("Required Email")
+			err = errors.New("Required Email")
+			errorMessages = append(errorMessages, err.Error())
 		}
-		if err := checkmail.ValidateFormat(u.Email); err != nil {
-			return errors.New("Invalid Email")
+		if err = checkmail.ValidateFormat(u.Email); err != nil {
+			err = errors.New("Invalid Email")
+			errorMessages = append(errorMessages, err.Error())
 		}
-		return nil
-
 	default:
 		if u.Nickname == "" {
-			return errors.New("Required Nickname")
+			err = errors.New("Required Nickname")
+			errorMessages = append(errorMessages, err.Error())
 		}
 		if u.Password == "" {
-			return errors.New("Required Password")
+			err = errors.New("Required Password")
+			errorMessages = append(errorMessages, err.Error())
 		}
 		if u.Email == "" {
-			return errors.New("Required Email")
+			err = errors.New("Required Email")
+			errorMessages = append(errorMessages, err.Error())
 		}
-		if err := checkmail.ValidateFormat(u.Email); err != nil {
-			return errors.New("Invalid Email")
+		if err = checkmail.ValidateFormat(u.Email); err != nil {
+			err = errors.New("Invalid Email")
+			errorMessages = append(errorMessages, err.Error())
 		}
-		return nil
 	}
+	return errorMessages
 }
 
 func (u *User) SaveUser(db *gorm.DB) (*User, error) {
