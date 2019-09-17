@@ -46,58 +46,61 @@ func (u *User) Prepare() {
 	u.UpdatedAt = time.Now()
 }
 
-func (u *User) Validate(action string) []string {
+func (u *User) Validate(action string) map[string]string {
 
-	var errorMessages []string
+	var errorMessages = make(map[string]string)
+
 	var err error
 
 	switch strings.ToLower(action) {
 	case "update":
 		if u.Nickname == "" {
 			err = errors.New("Required Nickname")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_nickname"] = err.Error()
 		}
 		if u.Password == "" {
 			err = errors.New("Required Password")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_password"] = err.Error()
+
 		}
 		if u.Email == "" {
 			err = errors.New("Required Email")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_email"] = err.Error()
 		}
 		if err = checkmail.ValidateFormat(u.Email); err != nil {
 			err = errors.New("Invalid Email")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["invalid_email"] = err.Error()
 		}
 	case "login":
 		if u.Password == "" {
 			err = errors.New("Required Password")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_password"] = err.Error()
 		}
 		if u.Email == "" {
 			err = errors.New("Required Email")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_email"] = err.Error()
 		}
 		if err = checkmail.ValidateFormat(u.Email); err != nil {
 			err = errors.New("Invalid Email")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["invalid_email"] = err.Error()
 		}
 	default:
 		if u.Nickname == "" {
 			err = errors.New("Required Nickname")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_nickname"] = err.Error()
 		}
 		if u.Password == "" {
 			err = errors.New("Required Password")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_password"] = err.Error()
+
 		}
 		if u.Email == "" {
 			err = errors.New("Required Email")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["required_email"] = err.Error()
 		}
 		if err = checkmail.ValidateFormat(u.Email); err != nil {
 			err = errors.New("Invalid Email")
-			errorMessages = append(errorMessages, err.Error())
+			errorMessages["invalid_email"] = err.Error()
 		}
 	}
 	return errorMessages
