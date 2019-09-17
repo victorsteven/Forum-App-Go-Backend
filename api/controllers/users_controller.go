@@ -20,8 +20,8 @@ func (server *Server) CreateUser(c *gin.Context) {
 	if err != nil {
 		errList["invalid_body"] = "Unable to get request"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status":      http.StatusUnprocessableEntity,
-			"first error": errList,
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
 		})
 		return
 	}
