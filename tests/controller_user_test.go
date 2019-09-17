@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -119,65 +120,68 @@ func TestGetUsers(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Cannot convert to json: %v\n", err)
 	}
-	// This is so that we can get the length of the user:
+	// This is so that we can get the length of the users:
 	theUsers := usersMap["response"].([]interface{})
 	assert.Equal(t, rr.Code, http.StatusOK)
 	assert.Equal(t, len(theUsers), 2)
 }
 
-// func TestGetUserByID(t *testing.T) {
+func TestGetUserByID(t *testing.T) {
 
-// 	err := refreshUserTable()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	user, err := seedOneUser()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	userSample := []struct {
-// 		id           string
-// 		statusCode   int
-// 		nickname     string
-// 		email        string
-// 		errorMessage string
-// 	}{
-// 		{
-// 			id:         strconv.Itoa(int(user.ID)),
-// 			statusCode: 200,
-// 			nickname:   user.Nickname,
-// 			email:      user.Email,
-// 		},
-// 		{
-// 			id:         "unknwon",
-// 			statusCode: 400,
-// 		},
-// 	}
-// 	for _, v := range userSample {
+	// Switch to test mode so you don't get such noisy output
+	gin.SetMode(gin.TestMode)
 
-// 		req, err := http.NewRequest("GET", "/users", nil)
-// 		if err != nil {
-// 			t.Errorf("This is the error: %v\n", err)
-// 		}
-// 		req = mux.SetURLVars(req, map[string]string{"id": v.id})
-// 		rr := httptest.NewRecorder()
-// 		handler := http.HandlerFunc(server.GetUser)
-// 		handler.ServeHTTP(rr, req)
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	user, err := seedOneUser()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// 		responseMap := make(map[string]interface{})
-// 		err = json.Unmarshal([]byte(rr.Body.String()), &responseMap)
-// 		if err != nil {
-// 			log.Fatalf("Cannot convert to json: %v", err)
-// 		}
+	userSample := []struct {
+		id           string
+		statusCode   int
+		nickname     string
+		email        string
+		errorMessage string
+	}{
+		{
+			id:         strconv.Itoa(int(user.ID)),
+			statusCode: 200,
+			nickname:   user.Nickname,
+			email:      user.Email,
+		},
+		{
+			id:         "unknwon",
+			statusCode: 400,
+		},
+	}
+	for _, v := range userSample {
+		req, _ := http.NewRequest("GET", "/users/"+v.id, nil)
+		rr := httptest.NewRecorder()
 
-// 		assert.Equal(t, rr.Code, v.statusCode)
+		r := gin.Default()
+		r.GET("/users/:id", server.GetUser)
+		r.ServeHTTP(rr, req)
 
-// 		if v.statusCode == 200 {
-// 			assert.Equal(t, user.Nickname, responseMap["nickname"])
-// 			assert.Equal(t, user.Email, responseMap["email"])
-// 		}
-// 	}
-// }
+		userMap := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &userMap)
+		if err != nil {
+			log.Fatalf("Cannot convert to json: %v", err)
+		}
+
+		theUser := userMap["response"]                  // Get the value from the response
+		userData, _ := theUser.(map[string]interface{}) //converting theUser to a mp from a interface
+
+		assert.Equal(t, rr.Code, v.statusCode)
+		if v.statusCode == 200 {
+			assert.Equal(t, user.Nickname, userData["nickname"])
+			assert.Equal(t, user.Email, userData["email"])
+		}
+	}
+}
 
 // func TestUpdateUser(t *testing.T) {
 
