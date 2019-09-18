@@ -12,13 +12,16 @@ import (
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 )
 
+// var errList *errormsg.ErrorMessage
+
+// var errList
 var errList = make(map[string]string)
 
 func (server *Server) CreateUser(c *gin.Context) {
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		errList["invalid_body"] = "Unable to get request"
+		errList["Invalid_body"] = "Unable to get request"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
@@ -30,7 +33,7 @@ func (server *Server) CreateUser(c *gin.Context) {
 
 	err = json.Unmarshal(body, &user)
 	if err != nil {
-		errList["unmarshal_error"] = "Cannot unmarshal body"
+		errList["Unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
@@ -70,7 +73,7 @@ func (server *Server) GetUsers(c *gin.Context) {
 
 	users, err := user.FindAllUsers(server.DB)
 	if err != nil {
-		errList["no_user"] = "No User Found"
+		errList["No_user"] = "No User Found"
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": http.StatusInternalServerError,
 			"error":  errList,
@@ -89,7 +92,7 @@ func (server *Server) GetUser(c *gin.Context) {
 
 	uid, err := strconv.ParseUint(userID, 10, 32)
 	if err != nil {
-		errList["invalid_request"] = "Invalid Request"
+		errList["Invalid_request"] = "Invalid Request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": http.StatusBadRequest,
 			"error":  errList,
@@ -100,7 +103,7 @@ func (server *Server) GetUser(c *gin.Context) {
 
 	userGotten, err := user.FindUserByID(server.DB, uint32(uid))
 	if err != nil {
-		errList["no_user"] = "No User Found"
+		errList["No_user"] = "No User Found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"status": http.StatusNotFound,
 			"error":  errList,
@@ -119,7 +122,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	// Check if the user id is valid
 	uid, err := strconv.ParseUint(userID, 10, 32)
 	if err != nil {
-		errList["invalid_request"] = "Invalid Request"
+		errList["Invalid_request"] = "Invalid Request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": http.StatusBadRequest,
 			"error":  errList,
@@ -130,7 +133,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	// Get user id from the token for valid tokens
 	tokenID, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
-		errList["unauthorized"] = "Unauthorized"
+		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": http.StatusUnauthorized,
 			"error":  errList,
@@ -140,7 +143,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 
 	// If the id is not the authenticated user id
 	if tokenID != 0 && tokenID != uint32(uid) {
-		errList["unauthorized"] = "Unauthorized"
+		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": http.StatusUnauthorized,
 			"error":  errList,
@@ -150,7 +153,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	// Start processing the request
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		errList["invalid_body"] = "Unable to get request"
+		errList["Invalid_body"] = "Unable to get request"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
@@ -160,7 +163,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	user := models.User{}
 	err = json.Unmarshal(body, &user)
 	if err != nil {
-		errList["unmarshal_error"] = "Cannot unmarshal body"
+		errList["Unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
@@ -203,7 +206,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 	// Check if the user id is valid
 	uid, err := strconv.ParseUint(userID, 10, 32)
 	if err != nil {
-		errList["invalid_request"] = "Invalid Request"
+		errList["Invalid_request"] = "Invalid Request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": http.StatusBadRequest,
 			"error":  errList,
@@ -214,7 +217,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 	// Get user id from the token for valid tokens
 	tokenID, err = auth.ExtractTokenID(c.Request)
 	if err != nil {
-		errList["unauthorized"] = "Unauthorized"
+		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": http.StatusUnauthorized,
 			"error":  errList,
@@ -224,7 +227,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 
 	// If the id is not the authenticated user id
 	if tokenID != 0 && tokenID != uint32(uid) {
-		errList["unauthorized"] = "Unauthorized"
+		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": http.StatusUnauthorized,
 			"error":  errList,
@@ -236,7 +239,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 
 	_, err = user.DeleteAUser(server.DB, uint32(uid))
 	if err != nil {
-		errList["other_error"] = "Please try again later"
+		errList["Other_error"] = "Please try again later"
 		c.JSON(http.StatusNotFound, gin.H{
 			"status": http.StatusNotFound,
 			"error":  errList,
