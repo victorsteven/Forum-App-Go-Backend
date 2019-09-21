@@ -11,9 +11,11 @@ services:
     depends_on:
       - fullstack-postgres # This service depends on postgres. Start that first.
       # - fullstack-mysql # This service depends on mysql. Start that first.
+    environment:
+      - VIRTUAL_HOST=chodapi.com
+      - LETSENCRYPT_HOST=chodapi.com
     networks:
       - fullstack
-
 
   fullstack-postgres:
     image: postgres:latest
