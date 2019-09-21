@@ -2,32 +2,33 @@ version: '3'
 
 services:
   nginx-proxy:
-    restart: always
     image: jwilder/nginx-proxy
+    container_name: nginx-proxy
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - "/etc/nginx/vhost.d"
-      - "/usr/share/nginx/html"
-      - "/var/run/docker.sock:/tmp/docker.sock:ro"
-      - "/etc/nginx/certs"
-    networks:
-      - fullstack-proxy
+      - html:/usr/share/nginx/html
+      - dhparam:/etc/nginx/dhparam
+      - vhost:/etc/nginx/vhost.d
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
 
-  letsencrypt-nginx-proxy-companion:
-    restart: always
+  letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-proxy-lets-encrypt
     depends_on:
-      - nginx-proxy
+      - "nginx-proxy"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "/etc/nginx/vhost.d"
-      - "/usr/share/nginx/html"
-      - "/etc/nginx/certs"
-    networks:
-      - fullstack-proxy
+      - certs:/etc/nginx/certs:rw
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
-networks:
-  fullstack-proxy:
-    driver: bridge
+volumes:
+  certs:
+  html:
+  vhost:
+  dhparam:
