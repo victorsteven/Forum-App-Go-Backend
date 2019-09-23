@@ -30,7 +30,7 @@ fi
 echo "### Creating dummy certificate for $domains ..."
 path="/etc/letsencrypt/live/$domains"
 mkdir -p "$data_path/conf/live/$domains"
-docker-compose nginx-proxy-compose.yaml run --rm --entrypoint "\
+docker-compose -f nginx-proxy-compose.yaml run --rm --entrypoint "\
   openssl req -x509 -nodes -newkey rsa:1024 -days 1\
     -keyout '$path/privkey.pem' \
     -out '$path/fullchain.pem' \
@@ -39,11 +39,11 @@ echo
 
 
 echo "### Starting nginx ..."
-docker-compose nginx-proxy-compose.yaml up --force-recreate -d nginx
+docker-compose -f nginx-proxy-compose.yaml up --force-recreate -d nginx
 echo
 
 echo "### Deleting dummy certificate for $domains ..."
-docker-compose nginx-proxy-compose.yaml run --rm --entrypoint "\
+docker-compose -f nginx-proxy-compose.yaml run --rm --entrypoint "\
   rm -Rf /etc/letsencrypt/live/$domains && \
   rm -Rf /etc/letsencrypt/archive/$domains && \
   rm -Rf /etc/letsencrypt/renewal/$domains.conf" certbot
@@ -66,7 +66,7 @@ esac
 # Enable staging mode if needed
 if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
-docker-compose nginx-proxy-compose.yaml run --rm --entrypoint "\
+docker-compose -f nginx-proxy-compose.yaml run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     $staging_arg \
     $email_arg \
@@ -77,4 +77,4 @@ docker-compose nginx-proxy-compose.yaml run --rm --entrypoint "\
 echo
 
 echo "### Reloading nginx ..."
-docker-compose nginx-proxy-compose.yaml exec nginx nginx -s reload
+docker-compose -f nginx-proxy-compose.yaml exec nginx nginx -s reload
