@@ -3,8 +3,8 @@ services:
   app:
     container_name: full_app
     build: .
-    # ports: 
-    #   - 80:80 
+    ports: 
+      - 8080:8080 
     restart: on-failure
     volumes:
       - api:/usr/src/app/
@@ -12,9 +12,9 @@ services:
       - fullstack-postgres # This service depends on postgres. Start that first.
       # - fullstack-mysql # This service depends on mysql. Start that first.
     environment:
-      - VIRTUAL_HOST=chodapi.com
-      - LETSENCRYPT_HOST=chodapi.com
-      - VIRTUAL_PORT=80
+      - DOMAIN_NAME=chodapi.com
+      # - LETSENCRYPT_HOST=chodapi.com
+      # - VIRTUAL_PORT=80
     # hostname: chodapi.com
     # networks:
     #    fullstack:    
