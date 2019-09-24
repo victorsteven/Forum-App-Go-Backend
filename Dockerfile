@@ -28,9 +28,18 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 # Start a new stage from scratch
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+# RUN apk --no-cache add ca-certificates
+RUN apk add --no-cache ca-certificates autoconf automake libtool gettext gettext-dev make g++ texinfo curl
 
 WORKDIR /root/
+
+# Install fswatch for hot reload
+RUN wget https://github.com/emcrisostomo/fswatch/releases/download/1.14.0/fswatch-1.14.0.tar.gz
+RUN tar -xvzf fswatch-1.14.0.tar.gz
+WORKDIR /root/fswatch-1.14.0
+RUN ./configure
+RUN make
+RUN make install
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
