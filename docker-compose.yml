@@ -7,7 +7,7 @@ services:
       - 8080:8080 
     restart: on-failure
     volumes:
-      - ./:/usr/src/app/
+      - .:/usr/src/app
     depends_on:
       - fullstack-postgres # This service depends on postgres. Start that first.
       # - fullstack-mysql # This service depends on mysql. Start that first.

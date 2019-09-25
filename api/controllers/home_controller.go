@@ -9,6 +9,6 @@ import (
 func (server *Server) Home(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
-		"message": "Successfully visiting Home Page grtee!",
+		"message": "Successfully visiting Home Page SAM!",
 	})
 }

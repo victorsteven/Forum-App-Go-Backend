@@ -4,7 +4,7 @@ FROM golang:1.12-alpine
 
 RUN apk update && apk add --no-cache git
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 COPY go.mod go.sum ./
 
