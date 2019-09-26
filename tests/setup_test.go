@@ -77,7 +77,7 @@ func seedOneUser() (models.User, error) {
 	}
 
 	user := models.User{
-		Nickname: "Pet",
+		Username: "Pet",
 		Email:    "pet@gmail.com",
 		Password: "password",
 	}
@@ -97,12 +97,12 @@ func seedUsers() ([]models.User, error) {
 	}
 	users := []models.User{
 		models.User{
-			Nickname: "Steven victor",
+			Username: "Steven victor",
 			Email:    "steven@gmail.com",
 			Password: "password",
 		},
 		models.User{
-			Nickname: "Kenny Morris",
+			Username: "Kenny Morris",
 			Email:    "kenny@gmail.com",
 			Password: "password",
 		},
@@ -138,7 +138,7 @@ func seedOneUserAndOnePost() (models.Post, error) {
 		return models.Post{}, err
 	}
 	user := models.User{
-		Nickname: "Sam Phil",
+		Username: "Sam Phil",
 		Email:    "sam@gmail.com",
 		Password: "password",
 	}
@@ -167,12 +167,12 @@ func seedUsersAndPosts() ([]models.User, []models.Post, error) {
 	}
 	var users = []models.User{
 		models.User{
-			Nickname: "Steven victor",
+			Username: "Steven victor",
 			Email:    "steven@gmail.com",
 			Password: "password",
 		},
 		models.User{
-			Nickname: "Magu Frank",
+			Username: "Magu Frank",
 			Email:    "magu@gmail.com",
 			Password: "password",
 		},

@@ -34,7 +34,7 @@ func (p *Post) Validate() []string {
 	var err error
 
 	if p.Title == "" {
-		err = errors.New("Required Nickname")
+		err = errors.New("Required Username")
 		errorMessages = append(errorMessages, err.Error())
 	}
 	if p.Content == "" {

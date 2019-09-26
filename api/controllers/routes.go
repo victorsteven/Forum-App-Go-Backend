@@ -7,20 +7,25 @@ func (s *Server) initializeRoutes() {
 	// Home Route
 	s.Router.GET("/", s.Home)
 
-	// Login Route
-	// s.Router.POST("/login", s.Login)
+	
 
-	//Users routes
-	s.Router.POST("/users", s.CreateUser)
-	s.Router.GET("/users", s.GetUsers)
-	// s.Router.GET("/users/:id", s.GetUser)
-	// s.Router.PUT("/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateUser)
-	// s.Router.DELETE("/users/:id", middlewares.TokenAuthMiddleware(), s.DeleteUser)
+	v1 := s.Router.Group("/api/v1")
+	{
+		// Login Route
+		v1.POST("/login", s.Login)
 
-	//Posts routes
-	s.Router.POST("/posts", middlewares.TokenAuthMiddleware(), s.CreatePost)
-	s.Router.GET("/posts", s.GetPosts)
-	s.Router.GET("/posts/:id", s.GetPost)
-	s.Router.PUT("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdatePost)
-	s.Router.DELETE("/posts/:id", middlewares.TokenAuthMiddleware(), s.DeletePost)
+		//Users routes
+		v1.POST("/users", s.CreateUser)
+		v1.GET("/users", s.GetUsers)
+		// v1.GET("/users/:id", s.GetUser)
+		// v1.PUT("/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateUser)
+		// v1.DELETE("/users/:id", middlewares.TokenAuthMiddleware(), s.DeleteUser)
+
+		//Posts routes
+		v1.POST("/posts", middlewares.TokenAuthMiddleware(), s.CreatePost)
+		v1.GET("/posts", s.GetPosts)
+		v1.GET("/posts/:id", s.GetPost)
+		v1.PUT("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdatePost)
+		v1.DELETE("/posts/:id", middlewares.TokenAuthMiddleware(), s.DeletePost)
+	}
 }

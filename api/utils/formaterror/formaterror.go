@@ -11,9 +11,9 @@ var err error
 
 func FormatError(errString string) map[string]string {
 
-	if strings.Contains(errString, "nickname") {
-		err = errors.New("Nickname Already Taken")
-		errorMessages["Taken_nickname"] = err.Error()
+	if strings.Contains(errString, "username") {
+		err = errors.New("Username Already Taken")
+		errorMessages["Taken_username"] = err.Error()
 
 	}
 	if strings.Contains(errString, "email") {
@@ -34,9 +34,11 @@ func FormatError(errString string) map[string]string {
 	if len(errorMessages) > 0 {
 		return errorMessages
 	}
+
 	if len(errorMessages) == 0 {
 		errorMessages["Incorrect_details"] = "Incorrect Details"
 		return errorMessages
 	}
+
 	return nil
 }

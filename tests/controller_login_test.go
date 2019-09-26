@@ -117,7 +117,7 @@ func TestLogin(t *testing.T) {
 	for _, v := range samples {
 
 		r := *gin.Default()
-		r.POST("/login", server.Login)
+		r.POST("api/v1/login", server.Login)
 
 		req, err := http.NewRequest("POST", "/login", bytes.NewBufferString(v.inputJSON))
 		if err != nil {

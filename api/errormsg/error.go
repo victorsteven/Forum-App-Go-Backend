@@ -2,7 +2,7 @@ package errormsg
 
 type ErrorMessage struct {
 	Required_email    string
-	Required_nickname string
+	Required_username string
 	Invalid_email     string
 	Required_password string
 	Invalid_body      string

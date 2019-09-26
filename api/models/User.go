@@ -14,7 +14,7 @@ import (
 
 type User struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Nickname  string    `gorm:"size:255;not null;unique" json:"nickname"`
+	Username  string    `gorm:"size:255;not null;unique" json:"username"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null;" json:"password"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -40,7 +40,7 @@ func (u *User) BeforeSave() error {
 
 func (u *User) Prepare() {
 	u.ID = 0
-	u.Nickname = html.EscapeString(strings.TrimSpace(u.Nickname))
+	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
@@ -56,9 +56,9 @@ func (u *User) Validate(action string) map[string]string {
 
 	switch strings.ToLower(action) {
 	case "update":
-		if u.Nickname == "" {
-			err = errors.New("Required Nickname")
-			errorMessages["Required_nickname"] = err.Error()
+		if u.Username == "" {
+			err = errors.New("Required Username")
+			errorMessages["Required_username"] = err.Error()
 		}
 		if u.Password == "" {
 			err = errors.New("Required Password")
@@ -84,20 +84,26 @@ func (u *User) Validate(action string) map[string]string {
 		if u.Email == "" {
 			err = errors.New("Required Email")
 			errorMessages["Required_email"] = err.Error()
-
 		}
-		if err = checkmail.ValidateFormat(u.Email); err != nil {
-			err = errors.New("Invalid Email")
-			errorMessages["Invalid_email"] = err.Error()
+		if u.Email != "" {
+			if err = checkmail.ValidateFormat(u.Email); err != nil {
+				err = errors.New("Invalid Email")
+				errorMessages["Invalid_email"] = err.Error()
+			}
 		}
 	default:
-		if u.Nickname == "" {
-			err = errors.New("Required Nickname")
-			errorMessages["Required_nickname"] = err.Error()
+		if u.Username == "" {
+			err = errors.New("Required Username")
+			errorMessages["Required_username"] = err.Error()
 		}
 		if u.Password == "" {
 			err = errors.New("Required Password")
 			errorMessages["Required_password"] = err.Error()
+		}
+		if u.Password != "" && len(u.Password) < 6 {
+			err = errors.New("Password should be atleast 6 characters")
+			errorMessages["Invalid_password"] = err.Error()
+
 		}
 		if u.Email == "" {
 			err = errors.New("Required Email")
@@ -156,7 +162,7 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
 			"password":  u.Password,
-			"nickname":  u.Nickname,
+			"username":  u.Username,
 			"email":     u.Email,
 			"update_at": time.Now(),
 		},
