@@ -36,8 +36,8 @@ func (p *Post) Validate() map[string]string {
 
 
 	if p.Title == "" {
-		err = errors.New("Required Username")
-		errorMessages["Required_username"] = err.Error()
+		err = errors.New("Required Title")
+		errorMessages["Required_title"] = err.Error()
 
 	}
 	if p.Content == "" {
@@ -70,7 +70,7 @@ func (p *Post) SavePost(db *gorm.DB) (*Post, error) {
 func (p *Post) FindAllPosts(db *gorm.DB) (*[]Post, error) {
 	var err error
 	posts := []Post{}
-	err = db.Debug().Model(&Post{}).Limit(100).Find(&posts).Error
+	err = db.Debug().Model(&Post{}).Limit(100).Order("created_at desc").Find(&posts).Error
 	if err != nil {
 		return &[]Post{}, err
 	}
@@ -132,3 +132,4 @@ func (p *Post) DeleteAPost(db *gorm.DB, pid uint64, uid uint32) (int64, error) {
 	}
 	return db.RowsAffected, nil
 }
+
