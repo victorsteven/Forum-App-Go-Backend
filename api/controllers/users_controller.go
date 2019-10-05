@@ -12,10 +12,6 @@ import (
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 )
 
-// var errList *errormsg.ErrorMessage
-
-// var errList
-var errList = make(map[string]string)
 
 func (server *Server) CreateUser(c *gin.Context) {
 
@@ -248,6 +244,6 @@ func (server *Server) DeleteUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusNoContent, gin.H{
 		"status": http.StatusNoContent,
-		"error":  "User Deleted",
+		"response":  "User Deleted",
 	})
 }

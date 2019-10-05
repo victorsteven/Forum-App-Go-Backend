@@ -28,22 +28,26 @@ func (p *Post) Prepare() {
 	p.UpdatedAt = time.Now()
 }
 
-func (p *Post) Validate() []string {
+func (p *Post) Validate() map[string]string {
 
-	var errorMessages []string
 	var err error
+
+	var errorMessages = make(map[string]string)
+
 
 	if p.Title == "" {
 		err = errors.New("Required Username")
-		errorMessages = append(errorMessages, err.Error())
+		errorMessages["Required_username"] = err.Error()
+
 	}
 	if p.Content == "" {
 		err = errors.New("Required Content")
-		errorMessages = append(errorMessages, err.Error())
+		errorMessages["Required_content"] = err.Error()
+
 	}
 	if p.AuthorID < 1 {
 		err = errors.New("Required Author")
-		errorMessages = append(errorMessages, err.Error())
+		errorMessages["Required_author"] = err.Error()
 	}
 	return errorMessages
 }
