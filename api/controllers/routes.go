@@ -1,18 +1,19 @@
 package controllers
 
-import "github.com/victorsteven/fullstack/api/middlewares"
+import (
+	"github.com/victorsteven/fullstack/api/middlewares"
+)
 
 func (s *Server) initializeRoutes() {
 
 	// Home Route
 	s.Router.GET("/", s.Home)
 
-	
-
 	v1 := s.Router.Group("/api/v1")
 	{
 		// Login Route
 		v1.POST("/login", s.Login)
+		v1.POST("/logout", s.Logout)
 
 		//Users routes
 		v1.POST("/users", s.CreateUser)

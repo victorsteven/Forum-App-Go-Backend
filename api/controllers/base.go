@@ -2,16 +2,14 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/victorsteven/fullstack/api/middlewares"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	cors "github.com/rs/cors/wrapper/gin"
-
 	_ "github.com/jinzhu/gorm/dialects/mysql"    //mysql database driver
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
-
 	"github.com/victorsteven/fullstack/api/models"
 )
 
@@ -49,19 +47,8 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	server.DB.Debug().AutoMigrate(&models.User{}, &models.Post{}) //database migration
 
 	server.Router = gin.Default()
-	server.Router.Use(cors.Default())
-
-	// server.Router.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"https://foo.com"},
-	// 	AllowMethods:     []string{"PUT", "PATCH"},
-	// 	AllowHeaders:     []string{"Origin"},
-	// 	ExposeHeaders:    []string{"Content-Length"},
-	// 	AllowCredentials: true,
-	// 	AllowOriginFunc: func(origin string) bool {
-	// 		return origin == "https://github.com"
-	// 	},
-	// 	MaxAge: 12 * time.Hour,
-	// }))
+	//server.Router.Use(cors.Default())
+	server.Router.Use(middlewares.CORSMiddleware())
 
 	server.initializeRoutes()
 }
