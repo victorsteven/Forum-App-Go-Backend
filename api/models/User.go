@@ -17,6 +17,7 @@ type User struct {
 	Username  string    `gorm:"size:255;not null;unique" json:"username"`
 	Email     string    `gorm:"size:100;not null;unique" json:"email"`
 	Password  string    `gorm:"size:100;not null;" json:"password"`
+	AvatarPath string  `gorm:"size:255;null;" json:"avatar_path"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -55,26 +56,26 @@ func (u *User) Validate(action string) map[string]string {
 	var err error
 
 	switch strings.ToLower(action) {
-	case "update":
-		if u.Username == "" {
-			err = errors.New("Required Username")
-			errorMessages["Required_username"] = err.Error()
-		}
-		if u.Password == "" {
-			err = errors.New("Required Password")
-			errorMessages["Required_password"] = err.Error()
-
-		}
-		if u.Email == "" {
-			err = errors.New("Required Email")
-			errorMessages["Required_email"] = err.Error()
-		}
-		if u.Email != "" {
-			if err = checkmail.ValidateFormat(u.Email); err != nil {
-				err = errors.New("Invalid Email")
-				errorMessages["Invalid_email"] = err.Error()
-			}
-		}
+	//case "update":
+	//	if u.Username == "" {
+	//		err = errors.New("Required Username")
+	//		errorMessages["Required_username"] = err.Error()
+	//	}
+	//	if u.Password == "" {
+	//		err = errors.New("Required Password")
+	//		errorMessages["Required_password"] = err.Error()
+	//
+	//	}
+	//	if u.Email == "" {
+	//		err = errors.New("Required Email")
+	//		errorMessages["Required_email"] = err.Error()
+	//	}
+	//	if u.Email != "" {
+	//		if err = checkmail.ValidateFormat(u.Email); err != nil {
+	//			err = errors.New("Invalid Email")
+	//			errorMessages["Invalid_email"] = err.Error()
+	//		}
+	//	}
 
 	case "login":
 		if u.Password == "" {

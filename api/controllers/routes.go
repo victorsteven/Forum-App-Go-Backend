@@ -19,7 +19,7 @@ func (s *Server) initializeRoutes() {
 		v1.POST("/users", s.CreateUser)
 		v1.GET("/users", s.GetUsers)
 		// v1.GET("/users/:id", s.GetUser)
-		// v1.PUT("/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateUser)
+		v1.PUT("/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateUser)
 		// v1.DELETE("/users/:id", middlewares.TokenAuthMiddleware(), s.DeleteUser)
 
 		//Posts routes
@@ -28,5 +28,10 @@ func (s *Server) initializeRoutes() {
 		v1.GET("/posts/:id", s.GetPost)
 		v1.PUT("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdatePost)
 		v1.DELETE("/posts/:id", middlewares.TokenAuthMiddleware(), s.DeletePost)
+
+		//profile
+		//v1.POST("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdateProfile)
+
+
 	}
 }

@@ -1,7 +1,12 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/victorsteven/fullstack/api/utils/fileformat"
+
+	//"github.com/aws/aws-sdk-go/aws/awsutil"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -10,6 +15,10 @@ import (
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 
@@ -125,7 +134,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-
 	// Get user id from the token for valid tokens
 	tokenID, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
@@ -136,7 +144,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-
 	// If the id is not the authenticated user id
 	if tokenID != 0 && tokenID != uint32(uid) {
 		errList["Unauthorized"] = "Unauthorized"
@@ -146,52 +153,112 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-	// Start processing the request
-	body, err := ioutil.ReadAll(c.Request.Body)
+
+	file, err := c.FormFile("file")
 	if err != nil {
-		errList["Invalid_body"] = "Unable to get request"
+		errList["Invalid File"] = "Invalid File"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
 		})
 		return
 	}
-	user := models.User{}
-	err = json.Unmarshal(body, &user)
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials("QAYVCG5RL32XSKPAOHKH", "kiaAu8rTjNWBPx8FlVplVYt2q6rGJuHTV++Rz15IeXU", "ca32283c5e4f3884513e20b9c12664e572119a389b01affdec2a533b72c56db3"),
+		Endpoint:    aws.String("https://sfo2.digitaloceanspaces.com"),
+		Region:      aws.String("us-east-1"),
+	}
+	newSession := session.New(s3Config)
+	s3Client := s3.New(newSession)
+
+	f, err := file.Open()
 	if err != nil {
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
+		fmt.Println("This is the error: ")
+		fmt.Println(err)
 	}
 
-	user.Prepare()
-	errorMessages := user.Validate("update")
-	if len(errorMessages) > 0 {
-		errList = errorMessages
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
+		defer f.Close()
+		size := file.Size
+		buffer := make([]byte, size)
+		f.Read(buffer)
+		fileBytes := bytes.NewReader(buffer)
+		fileType := http.DetectContentType(buffer)
+		path := "/media/" + fileformat.UniqueFormat(file.Filename)
+		params := &s3.PutObjectInput{
+			Bucket:        aws.String("chodapi"),
+			Key:           aws.String(path),
+			Body:          fileBytes,
+			ContentLength: aws.Int64(size),
+			ContentType:   aws.String(fileType),
+			ACL: 			aws.String("public-read"),
+		}
+		//resp, err := svc.PutObject(params)
+
+		resp, err := s3Client.PutObject(params)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		fmt.Println("this is the response: ")
+		fmt.Println(resp)
+
+		//fmt.Printf("response %s", awsutil.StringValue(resp))
+		//	imageName.NAME = file.Filename
+		//	imageNames = append(imageNames, imageName)
+		//}
+		//c.JSON(http.StatusOK, imageNames)
+
+		fmt.Println("this is the file we have uploaded")
+		fmt.Println(file.Filename)
 		return
+
+		// Start processing the request
+		//body, err := ioutil.ReadAll(c.Request.Body)
+		//if err != nil {
+		//	errList["Invalid_body"] = "Unable to get request"
+		//	c.JSON(http.StatusUnprocessableEntity, gin.H{
+		//		"status": http.StatusUnprocessableEntity,
+		//		"error":  errList,
+		//	})
+		//	return
+		//}
+		//user := models.User{}
+		//err = json.Unmarshal(body, &user)
+		//if err != nil {
+		//	errList["Unmarshal_error"] = "Cannot unmarshal body"
+		//	c.JSON(http.StatusUnprocessableEntity, gin.H{
+		//		"status": http.StatusUnprocessableEntity,
+		//		"error":  errList,
+		//	})
+		//	return
+		//}
+
+		//user.Prepare()
+		//errorMessages := user.Validate("update")
+		//if len(errorMessages) > 0 {
+		//	errList = errorMessages
+		//	c.JSON(http.StatusUnprocessableEntity, gin.H{
+		//		"status": http.StatusUnprocessableEntity,
+		//		"error":  errList,
+		//	})
+		//	return
+		//}
+
+		//updatedUser, err := user.UpdateAUser(server.DB, uint32(uid))
+		//if err != nil {
+		//	formattedError := formaterror.FormatError(err.Error())
+		//	errList = formattedError
+		//	c.JSON(http.StatusInternalServerError, gin.H{
+		//		"status": http.StatusInternalServerError,
+		//		"error":  errList,
+		//	})
+		//	return
+		//}
+		//c.JSON(http.StatusOK, gin.H{
+		//	"status":   http.StatusOK,
+		//	"response": updatedUser,
+		//})
 	}
-	updatedUser, err := user.UpdateAUser(server.DB, uint32(uid))
-	if err != nil {
-		formattedError := formaterror.FormatError(err.Error())
-		errList = formattedError
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"error":  errList,
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"status":   http.StatusOK,
-		"response": updatedUser,
-	})
-}
 
 func (server *Server) DeleteUser(c *gin.Context) {
 
