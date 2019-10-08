@@ -56,7 +56,7 @@ func (u *User) Validate(action string) map[string]string {
 	var err error
 
 	switch strings.ToLower(action) {
-	//case "update":
+	case "update":
 	//	if u.Username == "" {
 	//		err = errors.New("Required Username")
 	//		errorMessages["Required_username"] = err.Error()
@@ -66,16 +66,16 @@ func (u *User) Validate(action string) map[string]string {
 	//		errorMessages["Required_password"] = err.Error()
 	//
 	//	}
-	//	if u.Email == "" {
-	//		err = errors.New("Required Email")
-	//		errorMessages["Required_email"] = err.Error()
-	//	}
-	//	if u.Email != "" {
-	//		if err = checkmail.ValidateFormat(u.Email); err != nil {
-	//			err = errors.New("Invalid Email")
-	//			errorMessages["Invalid_email"] = err.Error()
-	//		}
-	//	}
+		if u.Email == "" {
+			err = errors.New("Required Email")
+			errorMessages["Required_email"] = err.Error()
+		}
+		if u.Email != "" {
+			if err = checkmail.ValidateFormat(u.Email); err != nil {
+				err = errors.New("Invalid Email")
+				errorMessages["Invalid_email"] = err.Error()
+			}
+		}
 
 	case "login":
 		if u.Password == "" {
