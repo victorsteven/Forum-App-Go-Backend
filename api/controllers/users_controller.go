@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/victorsteven/fullstack/api/utils/fileformat"
+	"github.com/joho/godotenv"
+	"log"
+	"os"
 
 	//"github.com/aws/aws-sdk-go/aws/awsutil"
 	"io/ioutil"
@@ -122,6 +125,13 @@ func (server *Server) GetUser(c *gin.Context) {
 }
 
 func (server *Server) UpdateAvatar(c *gin.Context) {
+
+	var err error
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error getting env, %v", err)
+	}
+
 	userID := c.Param("id")
 	// Check if the user id is valid
 	uid, err := strconv.ParseUint(userID, 10, 32)
@@ -165,9 +175,9 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 		}
 		//if file != nil {
 			s3Config := &aws.Config{
-				Credentials: credentials.NewStaticCredentials("QAYVCG5RL32XSKPAOHKH", "kiaAu8rTjNWBPx8FlVplVYt2q6rGJuHTV++Rz15IeXU", "ca32283c5e4f3884513e20b9c12664e572119a389b01affdec2a533b72c56db3"),
-				Endpoint:    aws.String("https://sfo2.digitaloceanspaces.com"),
-				Region:      aws.String("us-east-1"),
+				Credentials: credentials.NewStaticCredentials(os.Getenv("DO_SPACES_KEY"), os.Getenv("DO_SPACES_SECRET"), os.Getenv("DO_SPACES_TOKEN")),
+				Endpoint:    aws.String(os.Getenv("DO_SPACES_ENDPOINT")),
+				Region:      aws.String(os.Getenv("DO_SPACES_REGION")),
 			}
 			newSession := session.New(s3Config)
 			s3Client := s3.New(newSession)
