@@ -7,6 +7,7 @@ import (
 	"github.com/victorsteven/fullstack/api/utils/fileformat"
 	"github.com/joho/godotenv"
 	"log"
+	"mime/multipart"
 	"os"
 
 	//"github.com/aws/aws-sdk-go/aws/awsutil"
@@ -123,6 +124,35 @@ func (server *Server) GetUser(c *gin.Context) {
 		"response": userGotten,
 	})
 }
+func SaveProfileImage(s *session.Session, file *multipart.FileHeader) (string, error) {
+	size := file.Size
+	buffer := make([]byte, size)
+	f, err := file.Open()
+	if err != nil {
+		fmt.Println("This is the error: ")
+		fmt.Println(err)
+	}
+	defer f.Close()
+	filePath := "/profile-photos/" + fileformat.UniqueFormat(file.Filename)
+	f.Read(buffer)
+	fileBytes := bytes.NewReader(buffer)
+	fileType := http.DetectContentType(buffer)
+
+	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
+		ACL:                       	aws.String("public-read"),
+		Body:                      	fileBytes,
+		Bucket:                    	aws.String("chodapibucket"),
+		ContentLength:        	   	aws.Int64(size),
+		ContentType:          		aws.String(fileType),
+		Key:                       	aws.String(filePath),
+	})
+	if err != nil {
+		return "", err
+	}
+	return filePath, err
+}
+
+
 
 func (server *Server) UpdateAvatar(c *gin.Context) {
 
@@ -163,7 +193,6 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 		return
 	}
 
-	//if c.Request.MultipartForm != nil {
 		file, err := c.FormFile("file")
 		if err != nil {
 			errList["Invalid File"] = "Invalid File"
@@ -173,45 +202,105 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 			})
 			return
 		}
-		//if file != nil {
-			s3Config := &aws.Config{
-				Credentials: credentials.NewStaticCredentials(os.Getenv("DO_SPACES_KEY"), os.Getenv("DO_SPACES_SECRET"), os.Getenv("DO_SPACES_TOKEN")),
-				Endpoint:    aws.String(os.Getenv("DO_SPACES_ENDPOINT")),
-				Region:      aws.String(os.Getenv("DO_SPACES_REGION")),
-			}
-			newSession := session.New(s3Config)
-			s3Client := s3.New(newSession)
 
-			f, err := file.Open()
-			if err != nil {
-				fmt.Println("This is the error: ")
-				fmt.Println(err)
-			}
-			defer f.Close()
-			filePath := fileformat.UniqueFormat(file.Filename)
-			size := file.Size
-			buffer := make([]byte, size)
-			f.Read(buffer)
-			fileBytes := bytes.NewReader(buffer)
-			fileType := http.DetectContentType(buffer)
-			path := "/profile-photos/" + filePath
-			params := &s3.PutObjectInput{
-				Bucket:        aws.String("chodapi"),
-				Key:           aws.String(path),
-				Body:          fileBytes,
-				ContentLength: aws.Int64(size),
-				ContentType:   aws.String(fileType),
-				ACL:           aws.String("public-read"),
-			}
-			resp, err := s3Client.PutObject(params)
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			fmt.Println("this is the response: ")
-			fmt.Println(resp)
-		//}
+		s, err := session.NewSession(&aws.Config{
+			Region: aws.String("us-east-1"),
+			Credentials: credentials.NewStaticCredentials(
+				os.Getenv("AWS_KEY"),
+				os.Getenv("AWS_SECRET"),
+				os.Getenv("AWS_TOKEN"),
+				),
+		})
+		if err != nil {
+			fmt.Printf("Could not upload file first error: %s\n", err)
+		}
+
+
+		fileName, err := SaveProfileImage(s, file)
+		if err != nil {
+			fmt.Printf("Could not upload file %s\n", err)
+		} else {
+			fmt.Printf("Image uploaded: %s\n", fileName)
+		}
+
+			//s3Config := &aws.Config{
+			//	Credentials: credentials.NewStaticCredentials(
+			//	os.Getenv("DO_SPACES_KEY"), os.Getenv("DO_SPACES_SECRET"), os.Getenv("DO_SPACES_TOKEN")),
+			//	Endpoint:    aws.String(os.Getenv("DO_SPACES_ENDPOINT")),
+			//	Region:      aws.String(os.Getenv("DO_SPACES_REGION")),
+			//}
+			//newSession := session.New(s3Config)
+			//s3Client := s3.New(newSession)
+			//
+			//f, err := file.Open()
+			//if err != nil {
+			//	fmt.Println("This is the error: ")
+			//	fmt.Println(err)
+			//}
+			//defer f.Close()
+			//filePath := fileformat.UniqueFormat(file.Filename)
+			//size := file.Size
+			//buffer := make([]byte, size)
+			//f.Read(buffer)
+			//fileBytes := bytes.NewReader(buffer)
+			//fileType := http.DetectContentType(buffer)
+			//path := "/profile-photos/" + filePath
+			//params := &s3.PutObjectInput{
+			//	Bucket:        aws.String("chodapi"),
+			//	Key:           aws.String(path),
+			//	Body:          fileBytes,
+			//	ContentLength: aws.Int64(size),
+			//	ContentType:   aws.String(fileType),
+			//	ACL:           aws.String("public-read"),
+			//}
+			//resp, err := s3Client.PutObject(params)
+			//if err != nil {
+			//	fmt.Println(err.Error())
+			//	return
+			//}
+			//fmt.Println("this is the response: ")
+			//fmt.Println(resp)
+			//
+			//fmt.Printf("this is the avatar path: %s\n", filePath)
+
+	//user := models.User{}
+	//user.AvatarPath = filePath
+	//err = json.Unmarshal(body, &user)
+	//if err != nil {
+	//	errList["Unmarshal_error"] = "Cannot unmarshal body"
+	//	c.JSON(http.StatusUnprocessableEntity, gin.H{
+	//		"status": http.StatusUnprocessableEntity,
+	//		"error":  errList,
+	//	})
+	//	return
 	//}
+
+	//user.Prepare()
+
+	//errorMessages := user.Validate("update")
+	//if len(errorMessages) > 0 {
+	//	errList = errorMessages
+	//	c.JSON(http.StatusUnprocessableEntity, gin.H{
+	//		"status": http.StatusUnprocessableEntity,
+	//		"error":  errList,
+	//	})
+	//	return
+	//}
+
+	//updatedUser, err := user.UpdateAUserAvatar(server.DB, uint32(uid))
+	//if err != nil {
+	//	formattedError := formaterror.FormatError(err.Error())
+	//	errList = formattedError
+	//	c.JSON(http.StatusInternalServerError, gin.H{
+	//		"status": http.StatusInternalServerError,
+	//		"error":  errList,
+	//	})
+	//	return
+	//}
+	//c.JSON(http.StatusOK, gin.H{
+	//	"status":   http.StatusOK,
+	//	"response": updatedUser,
+	//})
 }
 
 
