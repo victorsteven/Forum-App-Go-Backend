@@ -176,14 +176,14 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		fmt.Println("This is the error: ")
 		fmt.Println(err)
 	}
-
 		defer f.Close()
+		filePath := fileformat.UniqueFormat(file.Filename)
 		size := file.Size
 		buffer := make([]byte, size)
 		f.Read(buffer)
 		fileBytes := bytes.NewReader(buffer)
 		fileType := http.DetectContentType(buffer)
-		path := "/media/" + fileformat.UniqueFormat(file.Filename)
+		path := "/profile-photos/" + filePath
 		params := &s3.PutObjectInput{
 			Bucket:        aws.String("chodapi"),
 			Key:           aws.String(path),
@@ -192,8 +192,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			ContentType:   aws.String(fileType),
 			ACL: 			aws.String("public-read"),
 		}
-		//resp, err := svc.PutObject(params)
-
 		resp, err := s3Client.PutObject(params)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -201,16 +199,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		}
 		fmt.Println("this is the response: ")
 		fmt.Println(resp)
-
-		//fmt.Printf("response %s", awsutil.StringValue(resp))
-		//	imageName.NAME = file.Filename
-		//	imageNames = append(imageNames, imageName)
-		//}
-		//c.JSON(http.StatusOK, imageNames)
-
-		fmt.Println("this is the file we have uploaded")
-		fmt.Println(file.Filename)
-		return
 
 		// Start processing the request
 		//body, err := ioutil.ReadAll(c.Request.Body)
@@ -232,7 +220,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		//	})
 		//	return
 		//}
-
+		//
 		//user.Prepare()
 		//errorMessages := user.Validate("update")
 		//if len(errorMessages) > 0 {
@@ -243,7 +231,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		//	})
 		//	return
 		//}
-
+		//
 		//updatedUser, err := user.UpdateAUser(server.DB, uint32(uid))
 		//if err != nil {
 		//	formattedError := formaterror.FormatError(err.Error())
