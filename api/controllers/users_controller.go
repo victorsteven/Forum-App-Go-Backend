@@ -203,65 +203,65 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 			return
 		}
 
-		s, err := session.NewSession(&aws.Config{
-			Region: aws.String("us-east-1"),
-			Credentials: credentials.NewStaticCredentials(
-				os.Getenv("AWS_KEY"),
-				os.Getenv("AWS_SECRET"),
-				os.Getenv("AWS_TOKEN"),
-				),
-		})
-		if err != nil {
-			fmt.Printf("Could not upload file first error: %s\n", err)
-		}
+		//s, err := session.NewSession(&aws.Config{
+		//	Region: aws.String("us-east-1"),
+		//	Credentials: credentials.NewStaticCredentials(
+		//		os.Getenv("AWS_KEY"),
+		//		os.Getenv("AWS_SECRET"),
+		//		os.Getenv("AWS_TOKEN"),
+		//		),
+		//})
+		//if err != nil {
+		//	fmt.Printf("Could not upload file first error: %s\n", err)
+		//}
+		//
+		//
+		//fileName, err := SaveProfileImage(s, file)
+		//if err != nil {
+		//	fmt.Printf("Could not upload file %s\n", err)
+		//} else {
+		//	fmt.Printf("Image uploaded: %s\n", fileName)
+		//}
 
+			s3Config := &aws.Config{
+				Credentials: credentials.NewStaticCredentials(
+				os.Getenv("DO_SPACES_KEY"), os.Getenv("DO_SPACES_SECRET"), os.Getenv("DO_SPACES_TOKEN")),
+				Endpoint:    aws.String(os.Getenv("DO_SPACES_ENDPOINT")),
+				Region:      aws.String(os.Getenv("DO_SPACES_REGION")),
+			}
+			newSession := session.New(s3Config)
+			s3Client := s3.New(newSession)
 
-		fileName, err := SaveProfileImage(s, file)
-		if err != nil {
-			fmt.Printf("Could not upload file %s\n", err)
-		} else {
-			fmt.Printf("Image uploaded: %s\n", fileName)
-		}
+			f, err := file.Open()
+			if err != nil {
+				fmt.Println("This is the error: ")
+				fmt.Println(err)
+			}
+			defer f.Close()
+			filePath := fileformat.UniqueFormat(file.Filename)
+			size := file.Size
+			buffer := make([]byte, size)
+			f.Read(buffer)
+			fileBytes := bytes.NewReader(buffer)
+			fileType := http.DetectContentType(buffer)
+			path := "/profile-photos/" + filePath
+			params := &s3.PutObjectInput{
+				Bucket:        aws.String("chodapi"),
+				Key:           aws.String(path),
+				Body:          fileBytes,
+				ContentLength: aws.Int64(size),
+				ContentType:   aws.String(fileType),
+				ACL:           aws.String("public-read"),
+			}
+			resp, err := s3Client.PutObject(params)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			fmt.Println("this is the response: ")
+			fmt.Println(resp)
 
-			//s3Config := &aws.Config{
-			//	Credentials: credentials.NewStaticCredentials(
-			//	os.Getenv("DO_SPACES_KEY"), os.Getenv("DO_SPACES_SECRET"), os.Getenv("DO_SPACES_TOKEN")),
-			//	Endpoint:    aws.String(os.Getenv("DO_SPACES_ENDPOINT")),
-			//	Region:      aws.String(os.Getenv("DO_SPACES_REGION")),
-			//}
-			//newSession := session.New(s3Config)
-			//s3Client := s3.New(newSession)
-			//
-			//f, err := file.Open()
-			//if err != nil {
-			//	fmt.Println("This is the error: ")
-			//	fmt.Println(err)
-			//}
-			//defer f.Close()
-			//filePath := fileformat.UniqueFormat(file.Filename)
-			//size := file.Size
-			//buffer := make([]byte, size)
-			//f.Read(buffer)
-			//fileBytes := bytes.NewReader(buffer)
-			//fileType := http.DetectContentType(buffer)
-			//path := "/profile-photos/" + filePath
-			//params := &s3.PutObjectInput{
-			//	Bucket:        aws.String("chodapi"),
-			//	Key:           aws.String(path),
-			//	Body:          fileBytes,
-			//	ContentLength: aws.Int64(size),
-			//	ContentType:   aws.String(fileType),
-			//	ACL:           aws.String("public-read"),
-			//}
-			//resp, err := s3Client.PutObject(params)
-			//if err != nil {
-			//	fmt.Println(err.Error())
-			//	return
-			//}
-			//fmt.Println("this is the response: ")
-			//fmt.Println(resp)
-			//
-			//fmt.Printf("this is the avatar path: %s\n", filePath)
+			fmt.Printf("this is the avatar path: %s\n", filePath)
 
 	//user := models.User{}
 	//user.AvatarPath = filePath
