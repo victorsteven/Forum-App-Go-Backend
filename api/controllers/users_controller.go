@@ -263,8 +263,8 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 
 			fmt.Printf("this is the avatar path: %s\n", filePath)
 
-	//user := models.User{}
-	//user.AvatarPath = filePath
+	user := models.User{}
+	user.AvatarPath = filePath
 	//err = json.Unmarshal(body, &user)
 	//if err != nil {
 	//	errList["Unmarshal_error"] = "Cannot unmarshal body"
@@ -275,7 +275,7 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 	//	return
 	//}
 
-	//user.Prepare()
+	user.Prepare()
 
 	//errorMessages := user.Validate("update")
 	//if len(errorMessages) > 0 {
@@ -287,20 +287,20 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 	//	return
 	//}
 
-	//updatedUser, err := user.UpdateAUserAvatar(server.DB, uint32(uid))
-	//if err != nil {
-	//	formattedError := formaterror.FormatError(err.Error())
-	//	errList = formattedError
-	//	c.JSON(http.StatusInternalServerError, gin.H{
-	//		"status": http.StatusInternalServerError,
-	//		"error":  errList,
-	//	})
-	//	return
-	//}
-	//c.JSON(http.StatusOK, gin.H{
-	//	"status":   http.StatusOK,
-	//	"response": updatedUser,
-	//})
+	updatedUser, err := user.UpdateAUserAvatar(server.DB, uint32(uid))
+	if err != nil {
+		formattedError := formaterror.FormatError(err.Error())
+		errList = formattedError
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  errList,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": updatedUser,
+	})
 }
 
 

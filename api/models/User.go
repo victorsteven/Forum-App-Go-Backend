@@ -4,6 +4,7 @@ import (
 	"errors"
 	"html"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -21,6 +22,19 @@ type User struct {
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
+
+//type UserJson struct {
+//	  ID uint32
+//    Username string
+//   Email string
+//}
+//func (u *User) UserToReturn() UserJson {
+//	return UserJson{
+//		ID: u.ID,
+//		Username: u.Username,
+//		Email: u.Email
+//	}
+//}
 
 func Hash(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -45,6 +59,19 @@ func (u *User) Prepare() {
 	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
 	u.CreatedAt = time.Now()
 	u.UpdatedAt = time.Now()
+}
+
+func (u *User) AfterFind() (err error) {
+	if err != nil {
+		return err
+	}
+	if u.AvatarPath != "" {
+		u.AvatarPath = os.Getenv("DO_SPACES_URL") + u.AvatarPath
+	}
+	//dont return the user password
+	u.Password = ""
+
+	return nil
 }
 
 func (u *User) Validate(action string) map[string]string {
@@ -79,7 +106,7 @@ func (u *User) Validate(action string) map[string]string {
 
 	case "login":
 		if u.Password == "" {
-			err = errors.New("Required Password")
+			err = errors.New("Required Passwordsss")
 			errorMessages["Required_password"] = err.Error()
 		}
 		if u.Email == "" {
@@ -130,16 +157,6 @@ func (u *User) SaveUser(db *gorm.DB) (*User, error) {
 	}
 	return u, nil
 }
-
-//func (u *User) SaveUserAvatar(db *gorm.DB) (*User, error) {
-//
-//	var err error
-//	err = db.Debug().Create(&u).Error
-//	if err != nil {
-//		return &User{}, err
-//	}
-//	return u, nil
-//}
 
 func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
 	var err error
