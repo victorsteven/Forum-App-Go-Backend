@@ -10,7 +10,6 @@ import (
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/gin-gonic/contrib/sessions"
 )
 
 func (server *Server) Login(c *gin.Context) {
@@ -43,7 +42,7 @@ func (server *Server) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := server.SignIn(user.Email, user.Password)
+	userData, err := server.SignIn(user.Email, user.Password)
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -54,40 +53,53 @@ func (server *Server) Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
-		"response": token,
+		"response": userData,
 	})
 }
 
-func (server *Server) Logout(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("token")
-	if user == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
-		return
-	}
-	session.Delete("token")
-	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
-}
+//func (server *Server) Logout(c *gin.Context) {
+//	session := sessions.Default(c)
+//	user := session.Get("token")
+//	if user == nil {
+//		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
+//		return
+//	}
+//	session.Delete("token")
+//	if err := session.Save(); err != nil {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+//		return
+//	}
+//	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
+//}
 
 
-func (server *Server) SignIn(email, password string) (string, error) {
+func (server *Server) SignIn(email, password string) (map[string]interface{}, error) {
 
 	var err error
+
+	userData := make(map[string]interface{})
 
 	user := models.User{}
 
 	err = server.DB.Debug().Model(models.User{}).Where("email = ?", email).Take(&user).Error
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	err = models.VerifyPassword(user.Password, password)
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return "", err
+		return nil, err
 	}
-	return auth.CreateToken(user.ID, user.Email, user.Username)
+	token, err := auth.CreateToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	userData["token"] = token
+	userData["id"] =  user.ID
+	userData["email"] = user.Email
+	userData["photo"] = user.AvatarPath
+	userData["username"] = user.Username
+
+	return userData, nil
 }
 

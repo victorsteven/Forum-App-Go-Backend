@@ -13,7 +13,7 @@ func (s *Server) initializeRoutes() {
 	{
 		// Login Route
 		v1.POST("/login", s.Login)
-		v1.POST("/logout", s.Logout)
+		//v1.POST("/logout", s.Logout)
 
 		//Users routes
 		v1.POST("/users", s.CreateUser)
