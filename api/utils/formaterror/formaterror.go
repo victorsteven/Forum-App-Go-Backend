@@ -14,8 +14,8 @@ func FormatError(errString string) map[string]string {
 	if strings.Contains(errString, "username") {
 		err = errors.New("Username Already Taken")
 		errorMessages["Taken_username"] = err.Error()
-
 	}
+
 	if strings.Contains(errString, "email") {
 		err = errors.New("Email Already Taken")
 		errorMessages["Taken_email"] = err.Error()

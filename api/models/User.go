@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"fmt"
+	"github.com/victorsteven/fullstack/api/security"
 	"html"
 	"log"
 	"os"
@@ -10,7 +12,6 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -36,16 +37,16 @@ type User struct {
 //	}
 //}
 
-func Hash(password string) ([]byte, error) {
-	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-}
+//func Hash(password string) ([]byte, error) {
+//	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+//}
 
-func VerifyPassword(hashedPassword, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-}
+//func VerifyPassword(hashedPassword, password string) error {
+//	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+//}
 
 func (u *User) BeforeSave() error {
-	hashedPassword, err := Hash(u.Password)
+	hashedPassword, err := security.Hash(u.Password)
 	if err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func (u *User) AfterFind() (err error) {
 		u.AvatarPath = os.Getenv("DO_SPACES_URL") + u.AvatarPath
 	}
 	//dont return the user password
-	u.Password = ""
+	//u.Password = ""
 
 	return nil
 }
@@ -84,15 +85,6 @@ func (u *User) Validate(action string) map[string]string {
 
 	switch strings.ToLower(action) {
 	case "update":
-	//	if u.Username == "" {
-	//		err = errors.New("Required Username")
-	//		errorMessages["Required_username"] = err.Error()
-	//	}
-	//	if u.Password == "" {
-	//		err = errors.New("Required Password")
-	//		errorMessages["Required_password"] = err.Error()
-	//
-	//	}
 		if u.Email == "" {
 			err = errors.New("Required Email")
 			errorMessages["Required_email"] = err.Error()
@@ -106,7 +98,7 @@ func (u *User) Validate(action string) map[string]string {
 
 	case "login":
 		if u.Password == "" {
-			err = errors.New("Required Passwordsss")
+			err = errors.New("Required Password")
 			errorMessages["Required_password"] = err.Error()
 		}
 		if u.Email == "" {
@@ -131,7 +123,6 @@ func (u *User) Validate(action string) map[string]string {
 		if u.Password != "" && len(u.Password) < 6 {
 			err = errors.New("Password should be atleast 6 characters")
 			errorMessages["Invalid_password"] = err.Error()
-
 		}
 		if u.Email == "" {
 			err = errors.New("Required Email")
@@ -182,15 +173,23 @@ func (u *User) FindUserByID(db *gorm.DB, uid uint32) (*User, error) {
 
 func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 
+	//user := User{}
+	fmt.Printf("this is the user email: %s\n", u.Email)
+
+	//fmt.Printf("this is the password: %s\n", u.Password)
+
 	// To hash the password
 	err := u.BeforeSave()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+
+	//fmt.Printf("this is the user email: %s\n", u.Email)
+
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
 			"password":  u.Password,
-			"username":  u.Username,
 			"email":     u.Email,
 			"update_at": time.Now(),
 		},

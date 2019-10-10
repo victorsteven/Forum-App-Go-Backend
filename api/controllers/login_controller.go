@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/victorsteven/fullstack/api/security"
 	"io/ioutil"
 	"net/http"
 
@@ -85,7 +86,8 @@ func (server *Server) SignIn(email, password string) (map[string]interface{}, er
 	if err != nil {
 		return nil, err
 	}
-	err = models.VerifyPassword(user.Password, password)
+
+	err = security.VerifyPassword(user.Password, password)
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		return nil, err
 	}
@@ -97,7 +99,7 @@ func (server *Server) SignIn(email, password string) (map[string]interface{}, er
 	userData["token"] = token
 	userData["id"] =  user.ID
 	userData["email"] = user.Email
-	userData["photo"] = user.AvatarPath
+	userData["avatar_path"] = user.AvatarPath
 	userData["username"] = user.Username
 
 	return userData, nil

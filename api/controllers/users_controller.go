@@ -4,8 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/victorsteven/fullstack/api/utils/fileformat"
 	"github.com/joho/godotenv"
+	"github.com/victorsteven/fullstack/api/security"
+	"golang.org/x/crypto/bcrypt"
+
+	//"github.com/victorsteven/fullstack/api/security"
+	"github.com/victorsteven/fullstack/api/utils/fileformat"
+	//"golang.org/x/crypto/bcrypt"
 	"log"
 	"mime/multipart"
 	"os"
@@ -15,14 +20,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
-	"github.com/victorsteven/fullstack/api/auth"
-	"github.com/victorsteven/fullstack/api/models"
-	"github.com/victorsteven/fullstack/api/utils/formaterror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/gin-gonic/gin"
+	"github.com/victorsteven/fullstack/api/auth"
+	"github.com/victorsteven/fullstack/api/models"
+	"github.com/victorsteven/fullstack/api/utils/formaterror"
 )
 
 
@@ -346,21 +351,63 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			})
 			return
 		}
-		fmt.Printf("this is the body: %s\n", body)
+		fmt.Printf("the is the body: %s\n", body)
 
-		user := models.User{}
-		err = json.Unmarshal(body, &user)
+		requestBody := map[string]string{}
+		err = json.Unmarshal(body, &requestBody)
 		if err != nil {
-			errList["Unmarshal_error"] = "Cannot unmarshal body"
+		errList["Unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+			})
+			return
+		}
+
+	// Check for previous details
+	formalUser := models.User{}
+	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&formalUser).Error
+
+	fmt.Printf("the is the current password: %s\n", requestBody["current_password"])
+
+	if requestBody["current_password"] != "" {
+		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
+		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+			errList["Password_mismatch"] = "The password not correct"
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"status": http.StatusUnprocessableEntity,
 				"error":  errList,
 			})
 			return
 		}
+		return
+	}
 
-		user.Prepare()
-		errorMessages := user.Validate("update")
+	//This is can also be done on the frontend
+	if requestBody["new_password"]  != "" && requestBody["current_password"] == "" {
+		errList["Empty_Current"] = "Please Provide current password"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	if requestBody["new_password"]  != "" && len(requestBody["new_password"]) < 6 {
+		errList["Invalid_password"] = "Password should be atleast 6 characters"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+
+	newUser := models.User{}
+	newUser.Username = formalUser.Username
+	newUser.Email = requestBody["email"]
+	newUser.Password = requestBody["new_password"]
+
+	newUser.Prepare()
+		errorMessages := newUser.Validate("update")
 		if len(errorMessages) > 0 {
 			errList = errorMessages
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -370,13 +417,13 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			return
 		}
 
-		updatedUser, err := user.UpdateAUser(server.DB, uint32(uid))
+		updatedUser, err := newUser.UpdateAUser(server.DB, uint32(uid))
 		if err != nil {
 			formattedError := formaterror.FormatError(err.Error())
 			errList = formattedError
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": http.StatusInternalServerError,
-				"error":  errList,
+				"error":  err.Error(),
 			})
 			return
 		}
