@@ -364,11 +364,15 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			return
 		}
 
+		fmt.Printf("this is the request we received: ", requestBody)
+
 	// Check for previous details
 	formalUser := models.User{}
 	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&formalUser).Error
 
-	fmt.Printf("the is the current password: %s\n", requestBody["current_password"])
+	fmt.Printf("the is the current password now: %s\n", requestBody["current_password"])
+	fmt.Printf("this is the former password: %s\n", formalUser.Password)
+	fmt.Printf("this is the email we want: %s\n", requestBody["email"])
 
 	if requestBody["current_password"] != "" {
 		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
@@ -380,7 +384,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			})
 			return
 		}
-		return
 	}
 
 	//This is can also be done on the frontend
