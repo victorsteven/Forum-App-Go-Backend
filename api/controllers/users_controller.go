@@ -7,12 +7,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/victorsteven/fullstack/api/security"
 	"golang.org/x/crypto/bcrypt"
+	"strings"
 
 	//"github.com/victorsteven/fullstack/api/security"
 	"github.com/victorsteven/fullstack/api/utils/fileformat"
 	//"golang.org/x/crypto/bcrypt"
 	"log"
-	"mime/multipart"
 	"os"
 
 	//"github.com/aws/aws-sdk-go/aws/awsutil"
@@ -29,7 +29,6 @@ import (
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 )
-
 
 func (server *Server) CreateUser(c *gin.Context) {
 
@@ -129,35 +128,35 @@ func (server *Server) GetUser(c *gin.Context) {
 		"response": userGotten,
 	})
 }
-func SaveProfileImage(s *session.Session, file *multipart.FileHeader) (string, error) {
-	size := file.Size
-	buffer := make([]byte, size)
-	f, err := file.Open()
-	if err != nil {
-		fmt.Println("This is the error: ")
-		fmt.Println(err)
-	}
-	defer f.Close()
-	filePath := "/profile-photos/" + fileformat.UniqueFormat(file.Filename)
-	f.Read(buffer)
-	fileBytes := bytes.NewReader(buffer)
-	fileType := http.DetectContentType(buffer)
 
-	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
-		ACL:                       	aws.String("public-read"),
-		Body:                      	fileBytes,
-		Bucket:                    	aws.String("chodapibucket"),
-		ContentLength:        	   	aws.Int64(size),
-		ContentType:          		aws.String(fileType),
-		Key:                       	aws.String(filePath),
-	})
-	if err != nil {
-		return "", err
-	}
-	return filePath, err
-}
+//IF YOU ARE USING AMAZON S3
+// func SaveProfileImage(s *session.Session, file *multipart.FileHeader) (string, error) {
+// 	size := file.Size
+// 	buffer := make([]byte, size)
+// 	f, err := file.Open()
+// 	if err != nil {
+// 		fmt.Println("This is the error: ")
+// 		fmt.Println(err)
+// 	}
+// 	defer f.Close()
+// 	filePath := "/profile-photos/" + fileformat.UniqueFormat(file.Filename)
+// 	f.Read(buffer)
+// 	fileBytes := bytes.NewReader(buffer)
+// 	fileType := http.DetectContentType(buffer)
 
-
+// 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
+// 		ACL:                       	aws.String("public-read"),
+// 		Body:                      	fileBytes,
+// 		Bucket:                    	aws.String("chodapibucket"),
+// 		ContentLength:        	   	aws.Int64(size),
+// 		ContentType:          		aws.String(fileType),
+// 		Key:                       	aws.String(filePath),
+// 	})
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return filePath, err
+// }
 
 func (server *Server) UpdateAvatar(c *gin.Context) {
 
@@ -197,105 +196,103 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 		})
 		return
 	}
+	file, err := c.FormFile("file")
+	if err != nil {
+		errList["Invalid_file"] = "Invalid File"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
 
-		file, err := c.FormFile("file")
-		if err != nil {
-			errList["Invalid File"] = "Invalid File"
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"status": http.StatusUnprocessableEntity,
-				"error":  errList,
-			})
-			return
-		}
+	f, err := file.Open()
+	if err != nil {
+		errList["Invalid_file"] = "Invalid File"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	defer f.Close()
 
-		//s, err := session.NewSession(&aws.Config{
-		//	Region: aws.String("us-east-1"),
-		//	Credentials: credentials.NewStaticCredentials(
-		//		os.Getenv("AWS_KEY"),
-		//		os.Getenv("AWS_SECRET"),
-		//		os.Getenv("AWS_TOKEN"),
-		//		),
-		//})
-		//if err != nil {
-		//	fmt.Printf("Could not upload file first error: %s\n", err)
-		//}
-		//
-		//
-		//fileName, err := SaveProfileImage(s, file)
-		//if err != nil {
-		//	fmt.Printf("Could not upload file %s\n", err)
-		//} else {
-		//	fmt.Printf("Image uploaded: %s\n", fileName)
-		//}
+	size := file.Size
+	//The image should not be more than 3mb
+	if size > int64(3072000) {
+		errList["Too_large"] = "Sorry, Please upload an Image of 3MB or less"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	buffer := make([]byte, size)
+	f.Read(buffer)
+	fileBytes := bytes.NewReader(buffer)
+	fileType := http.DetectContentType(buffer)
+	//if the image is valid
+	if !strings.HasPrefix(fileType, "image") {
+		errList["Not_Image"] = "Please Upload a valid image"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	filePath := fileformat.UniqueFormat(file.Filename)
+	path := "/profile-photos/" + filePath
+	params := &s3.PutObjectInput{
+		Bucket:        aws.String("chodapi"),
+		Key:           aws.String(path),
+		Body:          fileBytes,
+		ContentLength: aws.Int64(size),
+		ContentType:   aws.String(fileType),
+		ACL:           aws.String("public-read"),
+	}
+	s3Config := &aws.Config{
+		Credentials: credentials.NewStaticCredentials(
+			os.Getenv("DO_SPACES_KEY"), os.Getenv("DO_SPACES_SECRET"), os.Getenv("DO_SPACES_TOKEN")),
+		Endpoint: aws.String(os.Getenv("DO_SPACES_ENDPOINT")),
+		Region:   aws.String(os.Getenv("DO_SPACES_REGION")),
+	}
+	newSession := session.New(s3Config)
+	s3Client := s3.New(newSession)
 
-			s3Config := &aws.Config{
-				Credentials: credentials.NewStaticCredentials(
-				os.Getenv("DO_SPACES_KEY"), os.Getenv("DO_SPACES_SECRET"), os.Getenv("DO_SPACES_TOKEN")),
-				Endpoint:    aws.String(os.Getenv("DO_SPACES_ENDPOINT")),
-				Region:      aws.String(os.Getenv("DO_SPACES_REGION")),
-			}
-			newSession := session.New(s3Config)
-			s3Client := s3.New(newSession)
+	_, err = s3Client.PutObject(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
-			f, err := file.Open()
-			if err != nil {
-				fmt.Println("This is the error: ")
-				fmt.Println(err)
-			}
-			defer f.Close()
-			filePath := fileformat.UniqueFormat(file.Filename)
-			size := file.Size
-			buffer := make([]byte, size)
-			f.Read(buffer)
-			fileBytes := bytes.NewReader(buffer)
-			fileType := http.DetectContentType(buffer)
-			path := "/profile-photos/" + filePath
-			params := &s3.PutObjectInput{
-				Bucket:        aws.String("chodapi"),
-				Key:           aws.String(path),
-				Body:          fileBytes,
-				ContentLength: aws.Int64(size),
-				ContentType:   aws.String(fileType),
-				ACL:           aws.String("public-read"),
-			}
-			resp, err := s3Client.PutObject(params)
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			fmt.Println("this is the response: ")
-			fmt.Println(resp)
+	//IF YOU PREFER TO USE AMAZON S3
+	//s, err := session.NewSession(&aws.Config{Too_large
+	//	Region: aws.String("us-east-1"),
+	//	Credentials: credentials.NewStaticCredentials(
+	//		os.Getenv("AWS_KEY"),
+	//		os.Getenv("AWS_SECRET"),
+	//		os.Getenv("AWS_TOKEN"),
+	//		),
+	//})
+	//if err != nil {
+	//	fmt.Printf("Could not upload file first error: %s\n", err)
+	//}
+	//
+	//
+	//fileName, err := SaveProfileImage(s, file)
+	//if err != nil {
+	//	fmt.Printf("Could not upload file %s\n", err)
+	//} else {
+	//	fmt.Printf("Image uploaded: %s\n", fileName)
+	//}
 
-			fmt.Printf("this is the avatar path: %s\n", filePath)
-
+	//Save the image path to the database
 	user := models.User{}
 	user.AvatarPath = filePath
-	//err = json.Unmarshal(body, &user)
-	//if err != nil {
-	//	errList["Unmarshal_error"] = "Cannot unmarshal body"
-	//	c.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"status": http.StatusUnprocessableEntity,
-	//		"error":  errList,
-	//	})
-	//	return
-	//}
-
 	user.Prepare()
-
-	//errorMessages := user.Validate("update")
-	//if len(errorMessages) > 0 {
-	//	errList = errorMessages
-	//	c.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"status": http.StatusUnprocessableEntity,
-	//		"error":  errList,
-	//	})
-	//	return
-	//}
-
 	updatedUser, err := user.UpdateAUserAvatar(server.DB, uint32(uid))
 	if err != nil {
-		formattedError := formaterror.FormatError(err.Error())
-		errList = formattedError
+		errList["Cannot_Save"] = "Cannot Save Image, Pls try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": http.StatusInternalServerError,
 			"error":  errList,
@@ -307,7 +304,6 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 		"response": updatedUser,
 	})
 }
-
 
 func (server *Server) UpdateUser(c *gin.Context) {
 
@@ -341,38 +337,31 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-		// Start processing the request
-		body, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			errList["Invalid_body"] = "Unable to get request"
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"status": http.StatusUnprocessableEntity,
-				"error":  errList,
-			})
-			return
-		}
-		fmt.Printf("the is the body: %s\n", body)
+	// Start processing the request
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["Invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	fmt.Printf("the is the body: %s\n", body)
 
-		requestBody := map[string]string{}
-		err = json.Unmarshal(body, &requestBody)
-		if err != nil {
+	requestBody := map[string]string{}
+	err = json.Unmarshal(body, &requestBody)
+	if err != nil {
 		errList["Unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
-			})
-			return
-		}
-
-		fmt.Printf("this is the request we received: ", requestBody)
-
+		})
+		return
+	}
 	// Check for previous details
 	formalUser := models.User{}
 	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&formalUser).Error
-
-	fmt.Printf("the is the current password now: %s\n", requestBody["current_password"])
-	fmt.Printf("this is the former password: %s\n", formalUser.Password)
-	fmt.Printf("this is the email we want: %s\n", requestBody["email"])
 
 	if requestBody["current_password"] != "" {
 		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
@@ -382,12 +371,12 @@ func (server *Server) UpdateUser(c *gin.Context) {
 				"status": http.StatusUnprocessableEntity,
 				"error":  errList,
 			})
-			return
 		}
+		return
 	}
 
 	//This is can also be done on the frontend
-	if requestBody["new_password"]  != "" && requestBody["current_password"] == "" {
+	if requestBody["new_password"] != "" && requestBody["current_password"] == "" {
 		errList["Empty_Current"] = "Please Provide current password"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
@@ -395,7 +384,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-	if requestBody["new_password"]  != "" && len(requestBody["new_password"]) < 6 {
+	if requestBody["new_password"] != "" && len(requestBody["new_password"]) < 6 {
 		errList["Invalid_password"] = "Password should be atleast 6 characters"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
@@ -410,31 +399,31 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	newUser.Password = requestBody["new_password"]
 
 	newUser.Prepare()
-		errorMessages := newUser.Validate("update")
-		if len(errorMessages) > 0 {
-			errList = errorMessages
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"status": http.StatusUnprocessableEntity,
-				"error":  errList,
-			})
-			return
-		}
-
-		updatedUser, err := newUser.UpdateAUser(server.DB, uint32(uid))
-		if err != nil {
-			formattedError := formaterror.FormatError(err.Error())
-			errList = formattedError
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": http.StatusInternalServerError,
-				"error":  err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"status":   http.StatusOK,
-			"response": updatedUser,
+	errorMessages := newUser.Validate("update")
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
 		})
+		return
 	}
+
+	updatedUser, err := newUser.UpdateAUser(server.DB, uint32(uid))
+	if err != nil {
+		formattedError := formaterror.FormatError(err.Error())
+		errList = formattedError
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": updatedUser,
+	})
+}
 
 func (server *Server) DeleteUser(c *gin.Context) {
 
@@ -486,7 +475,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusNoContent, gin.H{
-		"status": http.StatusNoContent,
-		"response":  "User Deleted",
+		"status":   http.StatusNoContent,
+		"response": "User Deleted",
 	})
 }

@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"github.com/victorsteven/fullstack/api/security"
 	"html"
 	"log"
@@ -76,11 +75,7 @@ func (u *User) AfterFind() (err error) {
 }
 
 func (u *User) Validate(action string) map[string]string {
-
 	var errorMessages = make(map[string]string)
-
-	// var errMsg errormsg.ErrorMessage
-
 	var err error
 
 	switch strings.ToLower(action) {
@@ -172,21 +167,11 @@ func (u *User) FindUserByID(db *gorm.DB, uid uint32) (*User, error) {
 }
 
 func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
-
-	//user := User{}
-	fmt.Printf("this is the user email: %s\n", u.Email)
-
-	//fmt.Printf("this is the password: %s\n", u.Password)
-
 	// To hash the password
 	err := u.BeforeSave()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-
-	//fmt.Printf("this is the user email: %s\n", u.Email)
-
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
 			"password":  u.Password,
@@ -206,7 +191,6 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 }
 
 func (u *User) UpdateAUserAvatar(db *gorm.DB, uid uint32) (*User, error) {
-
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
 			"avatar_path":  u.AvatarPath,
