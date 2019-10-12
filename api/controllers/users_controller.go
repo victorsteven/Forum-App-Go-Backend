@@ -32,6 +32,9 @@ import (
 
 func (server *Server) CreateUser(c *gin.Context) {
 
+	//clear previous error if any
+	errList = map[string]string{}
+
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		errList["Invalid_body"] = "Unable to get request"
@@ -82,6 +85,9 @@ func (server *Server) CreateUser(c *gin.Context) {
 
 func (server *Server) GetUsers(c *gin.Context) {
 
+	//clear previous error if any
+	errList = map[string]string{}
+
 	user := models.User{}
 
 	users, err := user.FindAllUsers(server.DB)
@@ -100,6 +106,9 @@ func (server *Server) GetUsers(c *gin.Context) {
 }
 
 func (server *Server) GetUser(c *gin.Context) {
+
+	//clear previous error if any
+	errList = map[string]string{}
 
 	userID := c.Param("id")
 
@@ -159,6 +168,9 @@ func (server *Server) GetUser(c *gin.Context) {
 // }
 
 func (server *Server) UpdateAvatar(c *gin.Context) {
+
+	//clear previous error if any
+	errList = map[string]string{}
 
 	var err error
 	err = godotenv.Load()
@@ -307,6 +319,9 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 
 func (server *Server) UpdateUser(c *gin.Context) {
 
+	//clear previous error if any
+	errList = map[string]string{}
+
 	userID := c.Param("id")
 	// Check if the user id is valid
 	uid, err := strconv.ParseUint(userID, 10, 32)
@@ -371,7 +386,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 
 	newUser := models.User{}
 
-
 	//When current password has content.
 	if requestBody["current_password"] == "" && requestBody["new_password"] != "" {
 		errList["Empty_Current"] = "Please Provide current password"
@@ -380,7 +394,8 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			"error":  errList,
 		})
 		return
-	} else if requestBody["current_password"] != "" && requestBody["new_password"] == "" {
+	}
+	if requestBody["current_password"] != "" && requestBody["new_password"] == "" {
 		errList["Empty_New"] = "Please Provide new password"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
@@ -389,20 +404,21 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		return
 	}
 	if requestBody["current_password"] != "" && requestBody["new_password"] != ""  {
+		//Also check if the passwords have valid lengths
+		if len(requestBody["current_password"]) < 6 ||  len(requestBody["new_password"]) < 6 {
+			errList["Invalid_password"] = "Password should be atleast 6 characters"
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"status": http.StatusUnprocessableEntity,
+				"error":  errList,
+			})
+			return
+		}
+		//if they do, check that the formal password is correct
 		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
 		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 			errList["Password_mismatch"] = "The password not correct"
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status": http.StatusInternalServerError,
-				"error":  errList,
-			})
-			return
-		}
-		//Also check if the new password is valid
-		if  len(requestBody["new_password"]) < 6 {
-			errList["Invalid_password"] = "Password should be atleast 6 characters"
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"status": http.StatusUnprocessableEntity,
 				"error":  errList,
 			})
 			return
@@ -443,6 +459,9 @@ func (server *Server) UpdateUser(c *gin.Context) {
 }
 
 func (server *Server) DeleteUser(c *gin.Context) {
+
+	//clear previous error if any
+	errList = map[string]string{}
 
 	var tokenID uint32
 
