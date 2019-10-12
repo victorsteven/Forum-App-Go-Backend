@@ -404,8 +404,8 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		return
 	}
 	if requestBody["current_password"] != "" && requestBody["new_password"] != ""  {
-		//Also check if the passwords have valid lengths
-		if len(requestBody["current_password"]) < 6 ||  len(requestBody["new_password"]) < 6 {
+		//Also check if the new password
+		if len(requestBody["new_password"]) < 6 {
 			errList["Invalid_password"] = "Password should be atleast 6 characters"
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"status": http.StatusUnprocessableEntity,
@@ -417,8 +417,8 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
 		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 			errList["Password_mismatch"] = "The password not correct"
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": http.StatusInternalServerError,
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"status": http.StatusUnprocessableEntity,
 				"error":  errList,
 			})
 			return
