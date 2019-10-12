@@ -347,8 +347,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Printf("the is the body: %s\n", body)
-
 	requestBody := map[string]string{}
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
@@ -362,30 +360,8 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	// Check for previous details
 	formalUser := models.User{}
 	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&formalUser).Error
-
-	if requestBody["current_password"] != "" {
-		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
-		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-			errList["Password_mismatch"] = "The password not correct"
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"status": http.StatusUnprocessableEntity,
-				"error":  errList,
-			})
-		}
-		return
-	}
-
-	//This is can also be done on the frontend
-	if requestBody["new_password"] != "" && requestBody["current_password"] == "" {
-		errList["Empty_Current"] = "Please Provide current password"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
-	if requestBody["new_password"] != "" && len(requestBody["new_password"]) < 6 {
-		errList["Invalid_password"] = "Password should be atleast 6 characters"
+	if err != nil {
+		errList["User_invalid"] = "The user is does not exist"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
@@ -394,9 +370,50 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	}
 
 	newUser := models.User{}
-	newUser.Username = formalUser.Username
+
+
+	//When current password has content.
+	if requestBody["current_password"] == "" && requestBody["new_password"] != "" {
+		errList["Empty_Current"] = "Please Provide current password"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	} else if requestBody["current_password"] != "" && requestBody["new_password"] == "" {
+		errList["Empty_New"] = "Please Provide new password"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	if requestBody["current_password"] != "" && requestBody["new_password"] != ""  {
+		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
+		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+			errList["Password_mismatch"] = "The password not correct"
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"error":  errList,
+			})
+			return
+		}
+		//Also check if the new password is valid
+		if  len(requestBody["new_password"]) < 6 {
+			errList["Invalid_password"] = "Password should be atleast 6 characters"
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"status": http.StatusUnprocessableEntity,
+				"error":  errList,
+			})
+			return
+		}
+		//update both the password and the email
+		newUser.Email = requestBody["email"]
+		newUser.Password = requestBody["new_password"]
+	}
+
+	//The password fields not entered, so update only the email
 	newUser.Email = requestBody["email"]
-	newUser.Password = requestBody["new_password"]
 
 	newUser.Prepare()
 	errorMessages := newUser.Validate("update")

@@ -2,14 +2,16 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/victorsteven/fullstack/api/security"
+	"github.com/victorsteven/fullstack/api/utils/formaterror"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
-	"github.com/victorsteven/fullstack/api/utils/formaterror"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -42,6 +44,8 @@ func (server *Server) Login(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Printf("Login user password: %s\n", user.Password)
+	fmt.Printf("this is the password type: %s\n", reflect.TypeOf(user.Password))
 
 	userData, err := server.SignIn(user.Email, user.Password)
 	if err != nil {
