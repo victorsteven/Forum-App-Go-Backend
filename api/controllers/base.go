@@ -46,7 +46,7 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 		fmt.Println("Unknown Driver")
 	}
 
-	server.DB.Debug().AutoMigrate(&models.User{}, &models.Post{}) //database migration
+	server.DB.Debug().AutoMigrate(&models.User{}, &models.Post{}, &models.ResetPassword{}) //database migration
 
 	server.Router = gin.Default()
 	//server.Router.Use(cors.Default())

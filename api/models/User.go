@@ -36,14 +36,6 @@ type User struct {
 //	}
 //}
 
-//func Hash(password string) ([]byte, error) {
-//	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-//}
-
-//func VerifyPassword(hashedPassword, password string) error {
-//	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-//}
-
 func (u *User) BeforeSave() error {
 	hashedPassword, err := security.Hash(u.Password)
 	if err != nil {
@@ -70,7 +62,6 @@ func (u *User) AfterFind() (err error) {
 	}
 	//dont return the user password
 	//u.Password = ""
-
 	return nil
 }
 
@@ -106,6 +97,19 @@ func (u *User) Validate(action string) map[string]string {
 				errorMessages["Invalid_email"] = err.Error()
 			}
 		}
+
+	case "forgotpassword":
+		if u.Email == "" {
+			err = errors.New("Required Email")
+			errorMessages["Required_email"] = err.Error()
+		}
+		if u.Email != "" {
+			if err = checkmail.ValidateFormat(u.Email); err != nil {
+				err = errors.New("Invalid Email")
+				errorMessages["Invalid_email"] = err.Error()
+			}
+		}
+
 	default:
 		if u.Username == "" {
 			err = errors.New("Required Username")
@@ -193,6 +197,7 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 	if db.Error != nil {
 		return &User{}, db.Error
 	}
+
 	// This is the display the updated user
 	err := db.Debug().Model(&User{}).Where("id = ?", uid).Take(&u).Error
 	if err != nil {
@@ -227,4 +232,17 @@ func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
 		return 0, db.Error
 	}
 	return db.RowsAffected, nil
+}
+
+func (u *User) UserPassword(db *gorm.DB) error {
+	var err error
+	err = db.Debug().Model(User{}).Where("email = ?", u.Email).Take(&u).Error
+	if err != nil {
+		return  err
+	}
+	if gorm.IsRecordNotFoundError(err) {
+		return errors.New("User Not Found")
+	}
+
+	return nil
 }

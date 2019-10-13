@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/victorsteven/fullstack/api/mailer"
 	"github.com/victorsteven/fullstack/api/security"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
@@ -81,6 +82,12 @@ func (server *Server) CreateUser(c *gin.Context) {
 		"status":   http.StatusCreated,
 		"response": userCreated,
 	})
+
+	//Send welcome mail to the user:
+	err = mailer.SendMail(userCreated)
+	if err != nil {
+		fmt.Printf("this is the sending mail error: %s\n", err)
+	}
 }
 
 func (server *Server) GetUsers(c *gin.Context) {
@@ -462,11 +469,8 @@ func (server *Server) DeleteUser(c *gin.Context) {
 
 	//clear previous error if any
 	errList = map[string]string{}
-
 	var tokenID uint32
-
 	userID := c.Param("id")
-
 	// Check if the user id is valid
 	uid, err := strconv.ParseUint(userID, 10, 32)
 	if err != nil {
@@ -477,7 +481,6 @@ func (server *Server) DeleteUser(c *gin.Context) {
 		})
 		return
 	}
-
 	// Get user id from the token for valid tokens
 	tokenID, err = auth.ExtractTokenID(c.Request)
 	if err != nil {
