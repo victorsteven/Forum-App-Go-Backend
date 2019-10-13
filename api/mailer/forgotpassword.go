@@ -22,11 +22,11 @@ func SendResetPassword(reset_password *models.ResetPassword) error {
 		},
 	}
 
-	var url string
+	var forgotUrl string
 	if os.Getenv("APP_ENV") == "production" {
-		url = "https://seamflow.com/forgotpassword/" + reset_password.Token
+		forgotUrl = "https://seamflow.com/resetpassword/" + reset_password.Token
 	} else {
-		url = "http://127.0.0.1/forgotpassword/" + reset_password.Token
+		forgotUrl = "http://127.0.0.1:3000/resetpassword/" + reset_password.Token
 	}
 
 	email := hermes.Email{
@@ -41,7 +41,7 @@ func SendResetPassword(reset_password *models.ResetPassword) error {
 					Button: hermes.Button{
 						Color: "#FFFFFF", // Optional action button color
 						Text:  "Reset Password",
-						Link: url,
+						Link: forgotUrl,
 					},
 				},
 			},

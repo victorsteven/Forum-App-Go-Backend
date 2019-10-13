@@ -98,17 +98,17 @@ func (u *User) Validate(action string) map[string]string {
 			}
 		}
 
-	case "forgotpassword":
-		if u.Email == "" {
-			err = errors.New("Required Email")
-			errorMessages["Required_email"] = err.Error()
-		}
-		if u.Email != "" {
-			if err = checkmail.ValidateFormat(u.Email); err != nil {
-				err = errors.New("Invalid Email")
-				errorMessages["Invalid_email"] = err.Error()
-			}
-		}
+	//case "resetPassword":
+	//	if u.Password == "" {
+	//		err = errors.New("Required Email")
+	//		errorMessages["Required_email"] = err.Error()
+	//	}
+	//	if u.Email != "" {
+	//		if err = checkmail.ValidateFormat(u.Email); err != nil {
+	//			err = errors.New("Invalid Email")
+	//			errorMessages["Invalid_email"] = err.Error()
+	//		}
+	//	}
 
 	default:
 		if u.Username == "" {
@@ -234,15 +234,28 @@ func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
 	return db.RowsAffected, nil
 }
 
-func (u *User) UserPassword(db *gorm.DB) error {
-	var err error
-	err = db.Debug().Model(User{}).Where("email = ?", u.Email).Take(&u).Error
-	if err != nil {
-		return  err
-	}
-	if gorm.IsRecordNotFoundError(err) {
-		return errors.New("User Not Found")
-	}
+//func (u *User) UserPassword(db *gorm.DB) error {
+//	var err error
+//	err = db.Debug().Model(User{}).Where("email = ?", u.Email).Take(&u).Error
+//	if err != nil {
+//		return  err
+//	}
+//	if gorm.IsRecordNotFoundError(err) {
+//		return errors.New("User Not Found")
+//	}
+//
+//	return nil
+//}
 
+func (u *User) UpdatePassword(db *gorm.DB) (error) {
+	db = db.Debug().Model(&User{}).Where("email = ?", u.Email).Take(&User{}).UpdateColumns(
+		map[string]interface{}{
+			"password":  u.Password,
+			"update_at": time.Now(),
+		},
+	)
+	if db.Error != nil {
+		return db.Error
+	}
 	return nil
 }
