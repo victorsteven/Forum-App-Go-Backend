@@ -380,8 +380,8 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		return
 	}
 	// Check for previous details
-	formalUser := models.User{}
-	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&formalUser).Error
+	formerUser := models.User{}
+	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&formerUser).Error
 	if err != nil {
 		errList["User_invalid"] = "The user is does not exist"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -421,7 +421,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			return
 		}
 		//if they do, check that the formal password is correct
-		err = security.VerifyPassword(formalUser.Password, requestBody["current_password"])
+		err = security.VerifyPassword(formerUser.Password, requestBody["current_password"])
 		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 			errList["Password_mismatch"] = "The password not correct"
 			c.JSON(http.StatusUnprocessableEntity, gin.H{

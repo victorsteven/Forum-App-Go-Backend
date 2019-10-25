@@ -15,6 +15,7 @@ type Post struct {
 	Content   string    `gorm:"size:500;not null;" json:"content"`
 	Author    User      `json:"author"`
 	AuthorID  uint32    `gorm:"not null" json:"author_id"`
+	Likes []Like        `gorm:"foreignkey:PostID" json:"likes"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
