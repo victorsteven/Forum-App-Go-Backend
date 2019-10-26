@@ -71,9 +71,12 @@ func (server *Server) UnLikePost(c *gin.Context) {
 		})
 		return
 	}
+
 	like := models.Like{}
 
-	err = json.Unmarshal(body, &like)
+	//the value of the post id and the user id are integers
+	requestBody := map[string]int{}
+	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
 		errList["Unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -82,7 +85,7 @@ func (server *Server) UnLikePost(c *gin.Context) {
 		})
 		return
 	}
-	_, err = auth.ExtractTokenID(c.Request)
+	tokenID, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
 		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -91,7 +94,19 @@ func (server *Server) UnLikePost(c *gin.Context) {
 		})
 		return
 	}
-	likeCreated, err := like.DeleteLike(server.DB)
+	userID := uint32(requestBody["user_id"])
+	postID := uint64(requestBody["post_id"])
+
+	// If the id is not the authenticated user id
+	if tokenID != 0 && tokenID != userID {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
+	likeDeleted, err := like.DeleteLike(server.DB, postID, userID)
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
 		errList = formattedError
@@ -101,9 +116,10 @@ func (server *Server) UnLikePost(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{
-		"status":   http.StatusCreated,
-		"response": likeCreated,
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": likeDeleted,
 	})
 }
 

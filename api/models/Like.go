@@ -24,12 +24,23 @@ func (l *Like) SaveLike(db *gorm.DB) (*Like, error) {
 	return l, nil
 }
 
-func (l *Like) DeleteLike(db *gorm.DB) (int64, error) {
-	db = db.Debug().Model(&Like{}).Where("user_id = ?", l.UserID).Take(&Like{}).Delete(&Like{})
-	if db.Error != nil {
-		return 0, db.Error
+func (l *Like) DeleteLike(db *gorm.DB, pid uint64, uid uint32) (*Like, error) {
+
+	var err error
+	var deletedLike *Like
+
+	err = db.Debug().Model(Like{}).Where("post_id = ? and user_id = ?", pid, uid).Take(&l).Error
+	if err != nil {
+		return &Like{}, err
+	} else {
+		//If the like exist, save it in deleted like and delete it
+		deletedLike = l
+		db = db.Debug().Model(&Like{}).Where("user_id = ?", l.UserID).Take(&Like{}).Delete(&Like{})
+		if db.Error != nil {
+			return &Like{}, db.Error
+		}
 	}
-	return db.RowsAffected, nil
+	return deletedLike, nil
 }
 
 
