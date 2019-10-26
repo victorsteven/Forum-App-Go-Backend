@@ -40,7 +40,5 @@ func (s *Server) initializeRoutes() {
 
 		//profile
 		//v1.POST("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdateProfile)
-
-
 	}
 }

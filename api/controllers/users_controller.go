@@ -31,6 +31,10 @@ import (
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 )
 
+func (server *Server) authUser(c *gin.Context) {
+
+}
+
 func (server *Server) CreateUser(c *gin.Context) {
 
 	//clear previous error if any
