@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"time"
 )
@@ -24,32 +25,30 @@ func (l *Like) SaveLike(db *gorm.DB) (*Like, error) {
 	return l, nil
 }
 
-func (l *Like) DeleteLike(db *gorm.DB, pid uint64, uid uint32) (*Like, error) {
+func (l *Like) DeleteLike(db *gorm.DB, id uint64) (*Like, error) {
 
 	var err error
 	var deletedLike *Like
 
-	err = db.Debug().Model(Like{}).Where("post_id = ? and user_id = ?", pid, uid).Take(&l).Error
+	err = db.Debug().Model(Like{}).Where("id = ?", id).Take(&l).Error
 	if err != nil {
+		fmt.Println("cant get like: ", err)
+		fmt.Println("the like id: ", id)
+
 		return &Like{}, err
 	} else {
 		//If the like exist, save it in deleted like and delete it
 		deletedLike = l
-		db = db.Debug().Model(&Like{}).Where("user_id = ?", l.UserID).Take(&Like{}).Delete(&Like{})
+		db = db.Debug().Model(&Like{}).Where("id = ?", id).Take(&Like{}).Delete(&Like{})
 		if db.Error != nil {
+			fmt.Println("cant delete like: ", db.Error)
 			return &Like{}, db.Error
 		}
 	}
 	return deletedLike, nil
 }
 
-
 func (l *Like) GetLikesInfo(db *gorm.DB, pid uint64) (*[]Like, error)  {
-	//err := db.Debug().Model(&Like{}).Where("post_id = ?", pid).Take(&Like{}).Error
-	//if err != nil {
-	//	return &Like{}, err
-	//}
-	//return l, nil
 
 	likes := []Like{}
 	err := db.Debug().Model(&Like{}).Where("post_id = ?", pid).Find(&likes).Error

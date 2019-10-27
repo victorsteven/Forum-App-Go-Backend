@@ -15,6 +15,8 @@ import (
 
 
 func (server *Server) LikePost(c *gin.Context) {
+	//clear previous error if any
+	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
@@ -25,10 +27,8 @@ func (server *Server) LikePost(c *gin.Context) {
 		})
 		return
 	}
-
 	//the value of the post id and the user id are integers
 	requestBody := make(map[string]interface{})
-
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
 		errList["Unmarshal_error"] = "Cannot unmarshal body"
@@ -47,7 +47,6 @@ func (server *Server) LikePost(c *gin.Context) {
 		})
 		return
 	}
-
 	//convert the interface type to integer
 	userID  := uint32((requestBody["user_id"]).(float64))
 	//postID  := int((requestBody["post_id"]).(float64))
@@ -69,6 +68,10 @@ func (server *Server) LikePost(c *gin.Context) {
 		})
 		return
 	}
+	//data := make(map[string]interface{})
+	//data["postID"] = postID
+	//data["likes"] = likeCreated
+
 	c.JSON(http.StatusCreated, gin.H{
 		"status":   http.StatusCreated,
 		"response": likeCreated,
@@ -76,6 +79,9 @@ func (server *Server) LikePost(c *gin.Context) {
 }
 
 func (server *Server) UnLikePost(c *gin.Context) {
+
+	//clear previous error if any
+	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
@@ -108,11 +114,16 @@ func (server *Server) UnLikePost(c *gin.Context) {
 		return
 	}
 	//convert the interface type to integer
-	userID  := uint32((requestBody["user_id"]).(float64))
+	likeID  := uint64((requestBody["id"]).(float64))
 	//postID  := int((requestBody["post_id"]).(float64))
+	userID  := uint32((requestBody["user_id"]).(float64))
 	postString := fmt.Sprintf("%v", requestBody["post_id"]) //convert interface to string
 	postInt, _ := strconv.Atoi(postString) //convert string to integer
 	postID := uint64(postInt)
+
+	//likeString := fmt.Sprintf("%v", requestBody["like_id"]) //convert interface to string
+	//likeInt, _ := strconv.Atoi(likeString) //convert string to integer
+	//likeID := uint64(likeInt)
 
 	// If the id is not the authenticated user id
 	if tokenID != 0 && tokenID != userID {
@@ -123,22 +134,21 @@ func (server *Server) UnLikePost(c *gin.Context) {
 		})
 		return
 	}
-
 	like := models.Like{}
+	like.ID = likeID
 	like.UserID = userID
 	like.PostID = postID
 
-	likeDeleted, err := like.DeleteLike(server.DB, postID, userID)
+	likeDeleted, err := like.DeleteLike(server.DB, likeID)
 	if err != nil {
 		//formattedError := formaterror.FormatError(err.Error())
 		//errList = formattedError
-		c.JSON(http.StatusNotFound, gin.H{
-			"status": http.StatusNotFound,
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
 			"error":  err,
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
 		"response": likeDeleted,
@@ -146,6 +156,10 @@ func (server *Server) UnLikePost(c *gin.Context) {
 }
 
 func (server *Server) GetLikes(c *gin.Context){
+
+	//clear previous error if any
+	errList = map[string]string{}
+
 	postID := c.Param("id")
 
 	//fmt.Println("THe post is is id: ", postID)
@@ -171,6 +185,10 @@ func (server *Server) GetLikes(c *gin.Context){
 		return
 	}
 	//fmt.Printf("this is the likes received: %d\n", len(likes))
+
+	//data := make(map[string]interface{})
+	//data["postID"] = pid
+	//data["likes"] = likes
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
