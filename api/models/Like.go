@@ -56,17 +56,12 @@ func (l *Like) GetLikesInfo(db *gorm.DB, pid uint64) (*[]Like, error)  {
 		return &[]Like{}, err
 	}
 	return &likes, err
-
-	//var result uint64
-	//db.Debug().Model(&Like{}).Where("post_id = ?", pid).Count(&result)
-
-	//check if the authenticated user liked the post:
 }
 
-func (l *Like) authUserLike(db *gorm.DB, uid uint32, pid uint64) (*Like, error) {
-	err := db.Debug().Model(&Like{}).Where("post_id = ? and user_id = ?", pid, uid).Error
-	if err != nil {
-		return &Like{}, err
-	}
-	return l, nil
-}
+//func (l *Like) authUserLike(db *gorm.DB, uid uint32, pid uint64) (*Like, error) {
+//	err := db.Debug().Model(&Like{}).Where("post_id = ? and user_id = ?", pid, uid).Error
+//	if err != nil {
+//		return &Like{}, err
+//	}
+//	return l, nil
+//}

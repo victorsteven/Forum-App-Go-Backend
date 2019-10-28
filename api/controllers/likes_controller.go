@@ -49,7 +49,6 @@ func (server *Server) LikePost(c *gin.Context) {
 	}
 	//convert the interface type to integer
 	userID  := uint32((requestBody["user_id"]).(float64))
-	//postID  := int((requestBody["post_id"]).(float64))
 	postString := fmt.Sprintf("%v", requestBody["post_id"]) //convert interface to string
 	postInt, _ := strconv.Atoi(postString) //convert string to integer
 	postID := uint64(postInt)
@@ -115,15 +114,10 @@ func (server *Server) UnLikePost(c *gin.Context) {
 	}
 	//convert the interface type to integer
 	likeID  := uint64((requestBody["id"]).(float64))
-	//postID  := int((requestBody["post_id"]).(float64))
 	userID  := uint32((requestBody["user_id"]).(float64))
 	postString := fmt.Sprintf("%v", requestBody["post_id"]) //convert interface to string
 	postInt, _ := strconv.Atoi(postString) //convert string to integer
 	postID := uint64(postInt)
-
-	//likeString := fmt.Sprintf("%v", requestBody["like_id"]) //convert interface to string
-	//likeInt, _ := strconv.Atoi(likeString) //convert string to integer
-	//likeID := uint64(likeInt)
 
 	// If the id is not the authenticated user id
 	if tokenID != 0 && tokenID != userID {

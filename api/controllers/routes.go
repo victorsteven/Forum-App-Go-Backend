@@ -34,9 +34,15 @@ func (s *Server) initializeRoutes() {
 		v1.DELETE("/posts/:id", middlewares.TokenAuthMiddleware(), s.DeletePost)
 
 		//Like route
-		v1.GET("/getlikes/:id", s.GetLikes)
+		v1.GET("/likes/:id", s.GetLikes)
 		v1.POST("/createlike/:id", middlewares.TokenAuthMiddleware(), s.LikePost)
 		v1.POST("/deletelike/:id", middlewares.TokenAuthMiddleware(), s.UnLikePost)
+
+		//Comment routes
+		v1.POST("/createcomment/:id", middlewares.TokenAuthMiddleware(), s.CreateComment)
+		v1.GET("/comments/:id", s.GetComments)
+		//v1.PUT("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdatePost)
+		//v1.DELETE("/posts/:id", middlewares.TokenAuthMiddleware(), s.DeletePost)
 
 		//profile
 		//v1.POST("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdateProfile)

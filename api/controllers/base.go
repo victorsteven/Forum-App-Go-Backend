@@ -51,6 +51,7 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 		&models.Post{},
 		&models.ResetPassword{},
 		&models.Like{},
+		&models.Comment{},
 		) //database migration
 
 	server.Router = gin.Default()
