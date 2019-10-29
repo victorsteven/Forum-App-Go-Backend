@@ -2,17 +2,19 @@ package controllers
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 )
 
 func (server *Server) CreatePost(c *gin.Context) {
+
+	//clear previous error if any
+	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
@@ -130,6 +132,9 @@ func (server *Server) GetPost(c *gin.Context) {
 
 func (server *Server) UpdatePost(c *gin.Context) {
 
+	//clear previous error if any
+	errList = map[string]string{}
+
 	postID := c.Param("id")
 	// Check if the post id is valid
 	pid, err := strconv.ParseUint(postID, 10, 64)
@@ -137,6 +142,17 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		errList["Invalid_request"] = "Invalid Request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": http.StatusBadRequest,
+			"error":  errList,
+		})
+		return
+	}
+	//Check if the post exist
+	origPost := models.Post{}
+	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&origPost).Error
+	if err != nil {
+		errList["No_post"] = "No Post Found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
 			"error":  errList,
 		})
 		return
@@ -151,29 +167,7 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
-
-	// Check if the post exist
-	post := models.Post{}
-	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
-	if err != nil {
-		errList["No_post"] = "No Post Found"
-		c.JSON(http.StatusNotFound, gin.H{
-			"status": http.StatusNotFound,
-			"error":  errList,
-		})
-		return
-	}
-	// If a user attempt to update a post not belonging to him
-
-	if uid != post.AuthorID {
-		errList["Unauthorized"] = "Unauthorized"
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status": http.StatusUnauthorized,
-			"error":  errList,
-		})
-		return
-	}
-	// Read the data posted
+	//// Read the data posted
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		errList["Invalid_body"] = "Unable to get request"
@@ -183,10 +177,9 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
-
 	// Start processing the request data
-	postUpdate := models.Post{}
-	err = json.Unmarshal(body, &postUpdate)
+	post := models.Post{}
+	err = json.Unmarshal(body, &post)
 	if err != nil {
 		errList["Unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -195,9 +188,16 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
-
-	postUpdate.Prepare()
-	errorMessages := postUpdate.Validate()
+	if uid != post.AuthorID {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
+	post.Prepare()
+	errorMessages := post.Validate()
 	if len(errorMessages) > 0 {
 		errList = errorMessages
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -206,17 +206,19 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
+	post.ID = origPost.ID //this is important to tell the model the post id to update, the other update field are set above
 
-	postUpdated, err := postUpdate.UpdateAPost(server.DB, pid)
+	postUpdated, err := post.UpdateAPost(server.DB)
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
 		errList = formattedError
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": http.StatusInternalServerError,
-			"error":  errList,
+			"error":  err,
 		})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
 		"response": postUpdated,

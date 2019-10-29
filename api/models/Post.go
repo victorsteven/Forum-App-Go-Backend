@@ -13,9 +13,9 @@ type Post struct {
 	ID        uint64    `gorm:"primary_key;auto_increment" json:"id"`
 	Title     string    `gorm:"size:255;not null;unique" json:"title"`
 	Content   string    `gorm:"size:500;not null;" json:"content"`
-	AuthorID  uint32    `gorm:"not null" json:"author_id"`
 	Author    User      `json:"author"`
-	//Likes []Like        `gorm:"foreignkey:PostID" json:"likes"`
+	AuthorID  uint32    `gorm:"not null" json:"author_id"`
+	Likes []Like        `gorm:"foreignkey:PostID" json:"likes"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -32,15 +32,18 @@ func (p *Post) Prepare() {
 func (p *Post) Validate() map[string]string {
 
 	var err error
+
 	var errorMessages = make(map[string]string)
 
 	if p.Title == "" {
 		err = errors.New("Required Title")
 		errorMessages["Required_title"] = err.Error()
+
 	}
 	if p.Content == "" {
 		err = errors.New("Required Content")
 		errorMessages["Required_content"] = err.Error()
+
 	}
 	if p.AuthorID < 1 {
 		err = errors.New("Required Author")
@@ -97,17 +100,18 @@ func (p *Post) FindPostByID(db *gorm.DB, pid uint64) (*Post, error) {
 	return p, nil
 }
 
-func (p *Post) UpdateAPost(db *gorm.DB, pid uint64) (*Post, error) {
+func (p *Post) UpdateAPost(db *gorm.DB) (*Post, error) {
 
 	var err error
-	db = db.Debug().Model(&Post{}).Where("id = ?", pid).Take(&Post{}).UpdateColumns(
-		map[string]interface{}{
-			"title":      p.Title,
-			"content":    p.Content,
-			"updated_at": time.Now(),
-		},
-	)
-	err = db.Debug().Model(&Post{}).Where("id = ?", pid).Take(&p).Error
+	//check if the post exist:
+	//err = db.Debug().Model(&Post{}).Where("id = ?", p.ID).Error
+	//if err != nil {
+	//	fmt.Println("this is the post error: ", err)
+	//	return &Post{}, err
+	//} else {
+	//	fmt.Println("The post exist this is it: ", p.ID)
+	//}
+	err = db.Debug().Model(&Post{}).Where("id = ?", p.ID).Updates(Post{Title: p.Title, Content: p.Content, UpdatedAt: time.Now()}).Error
 	if err != nil {
 		return &Post{}, err
 	}
