@@ -146,6 +146,16 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
+	//CHeck if the auth token is valid and  get the user id from it
+	uid, err := auth.ExtractTokenID(c.Request)
+	if err != nil {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
 	//Check if the post exist
 	origPost := models.Post{}
 	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&origPost).Error
@@ -157,9 +167,7 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
-	//CHeck if the auth token is valid and  get the user id from it
-	uid, err := auth.ExtractTokenID(c.Request)
-	if err != nil {
+	if uid != origPost.AuthorID {
 		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": http.StatusUnauthorized,
@@ -167,7 +175,7 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
-	//// Read the data posted
+	// Read the data posted
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		errList["Invalid_body"] = "Unable to get request"
@@ -184,14 +192,6 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		errList["Unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
-	if uid != post.AuthorID {
-		errList["Unauthorized"] = "Unauthorized"
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status": http.StatusUnauthorized,
 			"error":  errList,
 		})
 		return
