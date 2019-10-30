@@ -271,7 +271,7 @@ func (server *Server) DeletePost(c *gin.Context) {
 	}
 
 	// If all the conditions are met, delete the post
-	_, err = post.DeleteAPost(server.DB, pid, uid)
+	_, err = post.DeleteAPost(server.DB)
 	if err != nil {
 		errList["Other_error"] = "Please try again later"
 		c.JSON(http.StatusNotFound, gin.H{
@@ -280,8 +280,8 @@ func (server *Server) DeletePost(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusNoContent, gin.H{
-		"status": http.StatusNoContent,
-		"response":  "Post Deleted",
+	c.JSON(http.StatusOK, gin.H{
+		"status": http.StatusOK,
+		"response":  "post deleted",
 	})
 }

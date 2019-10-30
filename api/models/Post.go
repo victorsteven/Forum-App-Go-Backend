@@ -124,13 +124,34 @@ func (p *Post) UpdateAPost(db *gorm.DB) (*Post, error) {
 	return p, nil
 }
 
-func (p *Post) DeleteAPost(db *gorm.DB, pid uint64, uid uint32) (int64, error) {
+func (p *Post) DeleteAPost(db *gorm.DB) (int64, error) {
 
-	db = db.Debug().Model(&Post{}).Where("id = ? and author_id = ?", pid, uid).Take(&Post{}).Delete(&Post{})
+	db = db.Debug().Model(&Post{}).Where("id = ? and author_id = ?", p.ID, p.AuthorID).Take(&Post{}).Delete(&Post{})
 
 	if db.Error != nil {
 		return 0, db.Error
 	}
 	return db.RowsAffected, nil
 }
+
+
+
+//func (p *Post) DeletePost(db *gorm.DB) (*Post, error) {
+//
+//	var err error
+//	//var deletedPost *Post
+//
+//	err = db.Debug().Model(Post{}).Where("id = ?", p.ID).Take(&p).Error
+//	if err != nil {
+//		return &Post{}, err
+//	} else {
+//		//If the like exist, save it in deleted like and delete it
+//		deletedPost = p
+//		db = db.Debug().Model(&Post{}).Where("id = ?", p.ID).Take(&Post{}).Delete(&Post{})
+//		if db.Error != nil {
+//			return &Post{}, db.Error
+//		}
+//	}
+//	return deletedPost, nil
+//}
 
