@@ -103,14 +103,7 @@ func (p *Post) FindPostByID(db *gorm.DB, pid uint64) (*Post, error) {
 func (p *Post) UpdateAPost(db *gorm.DB) (*Post, error) {
 
 	var err error
-	//check if the post exist:
-	//err = db.Debug().Model(&Post{}).Where("id = ?", p.ID).Error
-	//if err != nil {
-	//	fmt.Println("this is the post error: ", err)
-	//	return &Post{}, err
-	//} else {
-	//	fmt.Println("The post exist this is it: ", p.ID)
-	//}
+
 	err = db.Debug().Model(&Post{}).Where("id = ?", p.ID).Updates(Post{Title: p.Title, Content: p.Content, UpdatedAt: time.Now()}).Error
 	if err != nil {
 		return &Post{}, err
@@ -136,22 +129,4 @@ func (p *Post) DeleteAPost(db *gorm.DB) (int64, error) {
 
 
 
-//func (p *Post) DeletePost(db *gorm.DB) (*Post, error) {
-//
-//	var err error
-//	//var deletedPost *Post
-//
-//	err = db.Debug().Model(Post{}).Where("id = ?", p.ID).Take(&p).Error
-//	if err != nil {
-//		return &Post{}, err
-//	} else {
-//		//If the like exist, save it in deleted like and delete it
-//		deletedPost = p
-//		db = db.Debug().Model(&Post{}).Where("id = ?", p.ID).Take(&Post{}).Delete(&Post{})
-//		if db.Error != nil {
-//			return &Post{}, db.Error
-//		}
-//	}
-//	return deletedPost, nil
-//}
 

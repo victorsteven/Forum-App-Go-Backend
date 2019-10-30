@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"strings"
 	"time"
@@ -75,4 +76,33 @@ func (c *Comment) GetComments(db *gorm.DB, pid uint64) (*[]Comment, error)  {
 		}
 	}
 	return &comments, err
+}
+
+func (c *Comment) UpdateAComment(db *gorm.DB) (*Comment, error) {
+
+	var err error
+
+	err = db.Debug().Model(&Comment{}).Where("id = ?", c.ID).Updates(Comment{Body: c.Body, UpdatedAt: time.Now()}).Error
+	if err != nil {
+		return &Comment{}, err
+	}
+
+	fmt.Println("this is the comment body: ", c.Body)
+	if c.ID != 0 {
+		err = db.Debug().Model(&User{}).Where("id = ?", c.UserID).Take(&c.User).Error
+		if err != nil {
+			return &Comment{}, err
+		}
+	}
+	return c, nil
+}
+
+func (c *Comment) DeleteAComment(db *gorm.DB) (int64, error) {
+
+	db = db.Debug().Model(&Comment{}).Where("id = ? and user_id = ?", c.ID, c.UserID).Take(&Comment{}).Delete(&Comment{})
+
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	return db.RowsAffected, nil
 }
