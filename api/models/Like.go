@@ -25,21 +25,17 @@ func (l *Like) SaveLike(db *gorm.DB) (*Like, error) {
 	return l, nil
 }
 
-func (l *Like) DeleteLike(db *gorm.DB, id uint64) (*Like, error) {
-
+func (l *Like) DeleteLike(db *gorm.DB) (*Like, error) {
 	var err error
 	var deletedLike *Like
 
-	err = db.Debug().Model(Like{}).Where("id = ?", id).Take(&l).Error
+	err = db.Debug().Model(Like{}).Where("id = ?", l.ID).Take(&l).Error
 	if err != nil {
-		fmt.Println("cant get like: ", err)
-		fmt.Println("the like id: ", id)
-
 		return &Like{}, err
 	} else {
 		//If the like exist, save it in deleted like and delete it
 		deletedLike = l
-		db = db.Debug().Model(&Like{}).Where("id = ?", id).Take(&Like{}).Delete(&Like{})
+		db = db.Debug().Model(&Like{}).Where("id = ?", l.ID).Take(&Like{}).Delete(&Like{})
 		if db.Error != nil {
 			fmt.Println("cant delete like: ", db.Error)
 			return &Like{}, db.Error
@@ -57,11 +53,3 @@ func (l *Like) GetLikesInfo(db *gorm.DB, pid uint64) (*[]Like, error)  {
 	}
 	return &likes, err
 }
-
-//func (l *Like) authUserLike(db *gorm.DB, uid uint32, pid uint64) (*Like, error) {
-//	err := db.Debug().Model(&Like{}).Where("post_id = ? and user_id = ?", pid, uid).Error
-//	if err != nil {
-//		return &Like{}, err
-//	}
-//	return l, nil
-//}

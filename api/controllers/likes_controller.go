@@ -15,6 +15,7 @@ import (
 
 
 func (server *Server) LikePost(c *gin.Context) {
+
 	//clear previous error if any
 	errList = map[string]string{}
 
@@ -27,18 +28,8 @@ func (server *Server) LikePost(c *gin.Context) {
 		})
 		return
 	}
-	//the value of the post id and the user id are integers
-	requestBody := make(map[string]interface{})
-	err = json.Unmarshal(body, &requestBody)
-	if err != nil {
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
-	_, err = auth.ExtractTokenID(c.Request)
+
+	uid, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
 		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -47,15 +38,27 @@ func (server *Server) LikePost(c *gin.Context) {
 		})
 		return
 	}
-	//convert the interface type to integer
-	userID  := uint32((requestBody["user_id"]).(float64))
-	postString := fmt.Sprintf("%v", requestBody["post_id"]) //convert interface to string
-	postInt, _ := strconv.Atoi(postString) //convert string to integer
-	postID := uint64(postInt)
 
 	like := models.Like{}
-	like.UserID = userID
-	like.PostID = postID
+
+	err = json.Unmarshal(body, &like)
+	if err != nil {
+		errList["Unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+
+	if uid != like.UserID {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
 
 	likeCreated, err := like.SaveLike(server.DB)
 	if err != nil {
@@ -67,9 +70,6 @@ func (server *Server) LikePost(c *gin.Context) {
 		})
 		return
 	}
-	//data := make(map[string]interface{})
-	//data["postID"] = postID
-	//data["likes"] = likeCreated
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status":   http.StatusCreated,
@@ -77,77 +77,6 @@ func (server *Server) LikePost(c *gin.Context) {
 	})
 }
 
-func (server *Server) UnLikePost(c *gin.Context) {
-
-	//clear previous error if any
-	errList = map[string]string{}
-
-	body, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		errList["Invalid_body"] = "Unable to get request"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
-	//the value of the post id and the user id are integers
-	requestBody := make(map[string]interface{})
-
-	err = json.Unmarshal(body, &requestBody)
-	if err != nil {
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
-	tokenID, err := auth.ExtractTokenID(c.Request)
-	if err != nil {
-		errList["Unauthorized"] = "Unauthorized"
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status": http.StatusUnauthorized,
-			"error":  errList,
-		})
-		return
-	}
-	//convert the interface type to integer
-	likeID  := uint64((requestBody["id"]).(float64))
-	userID  := uint32((requestBody["user_id"]).(float64))
-	postString := fmt.Sprintf("%v", requestBody["post_id"]) //convert interface to string
-	postInt, _ := strconv.Atoi(postString) //convert string to integer
-	postID := uint64(postInt)
-
-	// If the id is not the authenticated user id
-	if tokenID != 0 && tokenID != userID {
-		errList["Unauthorized"] = "Unauthorized"
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status": http.StatusUnauthorized,
-			"error":  errList,
-		})
-		return
-	}
-	like := models.Like{}
-	like.ID = likeID
-	like.UserID = userID
-	like.PostID = postID
-
-	likeDeleted, err := like.DeleteLike(server.DB, likeID)
-	if err != nil {
-		//formattedError := formaterror.FormatError(err.Error())
-		//errList = formattedError
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  err,
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"status":   http.StatusOK,
-		"response": likeDeleted,
-	})
-}
 
 func (server *Server) GetLikes(c *gin.Context){
 
@@ -178,40 +107,74 @@ func (server *Server) GetLikes(c *gin.Context){
 		})
 		return
 	}
-	//fmt.Printf("this is the likes received: %d\n", len(likes))
-
-	//data := make(map[string]interface{})
-	//data["postID"] = pid
-	//data["likes"] = likes
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
 		"response": likes,
 	})
 }
 
-//func (server *Server) getAuthUserLike(c *gin.Context){
-//
-//	postID := c.Param("id")
-//	// Is a valid post id given to us?
-//	pid, err := strconv.ParseUint(postID, 10, 64)
-//	if err != nil {
-//		errList["Invalid_request"] = "Invalid Request"
-//		c.JSON(http.StatusBadRequest, gin.H{
-//			"status": http.StatusBadRequest,
-//			"error":  errList,
-//		})
-//		return
-//	}
-//
-//	// Is this user authenticated?
-//	uid, err := auth.ExtractTokenID(c.Request)
-//	if err != nil {
-//		errList["Unauthorized"] = "Unauthorized"
-//		c.JSON(http.StatusUnauthorized, gin.H{
-//			"status": http.StatusUnauthorized,
-//			"error":  errList,
-//		})
-//		return
-//	}
-//}
+func (server *Server) UnLikePost(c *gin.Context) {
+
+	likeID := c.Param("id")
+	// Is a valid post id given to us?
+	lid, err := strconv.ParseUint(likeID, 10, 64)
+	if err != nil {
+		errList["Invalid_request"] = "Invalid Request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"error":  errList,
+		})
+		return
+	}
+	fmt.Println("this is the id to unlike: ", lid)
+
+	// Is this user authenticated?
+	uid, err := auth.ExtractTokenID(c.Request)
+	if err != nil {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
+	// Check if the post exist
+	like := models.Like{}
+	err = server.DB.Debug().Model(models.Like{}).Where("id = ?", lid).Take(&like).Error
+	if err != nil {
+		errList["No_like"] = "No Like Found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  errList,
+		})
+		return
+	}
+	// Is the authenticated user, the owner of this post?
+	if uid != like.UserID {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
+
+	// If all the conditions are met, delete the post
+	deletedLike, err := like.DeleteLike(server.DB)
+	if err != nil {
+		errList["Other_error"] = "Please try again later"
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  errList,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": http.StatusOK,
+		"response":  deletedLike,
+	})
+}
+
+
+
+

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
-	"github.com/victorsteven/fullstack/api/mailer"
 	"github.com/victorsteven/fullstack/api/security"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
@@ -88,10 +87,10 @@ func (server *Server) CreateUser(c *gin.Context) {
 	})
 
 	//Send welcome mail to the user:
-	err = mailer.SendMail(userCreated)
-	if err != nil {
-		fmt.Printf("this is the sending mail error: %s\n", err)
-	}
+	//err = mailer.SendMail(userCreated)
+	//if err != nil {
+	//	fmt.Printf("this is the sending mail error: %s\n", err)
+	//}
 }
 
 func (server *Server) GetUsers(c *gin.Context) {
