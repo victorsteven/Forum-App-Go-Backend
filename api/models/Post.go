@@ -120,11 +120,39 @@ func (p *Post) UpdateAPost(db *gorm.DB) (*Post, error) {
 func (p *Post) DeleteAPost(db *gorm.DB) (int64, error) {
 
 	db = db.Debug().Model(&Post{}).Where("id = ? and author_id = ?", p.ID, p.AuthorID).Take(&Post{}).Delete(&Post{})
-
 	if db.Error != nil {
 		return 0, db.Error
 	}
+
+	//Also delete the likes and the comments:
+	//db = db.Debug().Model(&Comment{}).Where("post_id = ?", p.ID).Take(&Comment{}).Delete(&Comment{})
+	//if db.Error != nil {
+	//	return 0, db.Error
+	//}
+	//db = db.Debug().Model(&Like{}).Where("post_id = ?", p.ID).Take(&Like{}).Delete(&Like{})
+	//if db.Error != nil {
+	//	return 0, db.Error
+	//}
 	return db.RowsAffected, nil
+}
+
+func (p *Post) FindUserPosts(db *gorm.DB, uid uint32) (*[]Post, error) {
+
+	var err error
+	posts := []Post{}
+	err = db.Debug().Model(&Post{}).Where("author_id = ?", uid).Limit(100).Order("created_at desc").Find(&posts).Error
+	if err != nil {
+		return &[]Post{}, err
+	}
+	if len(posts) > 0 {
+		for i, _ := range posts {
+			err := db.Debug().Model(&User{}).Where("id = ?", posts[i].AuthorID).Take(&posts[i].Author).Error
+			if err != nil {
+				return &[]Post{}, err
+			}
+		}
+	}
+	return &posts, nil
 }
 
 

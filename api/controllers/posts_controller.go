@@ -87,7 +87,7 @@ func (server *Server) GetPosts(c *gin.Context) {
 
 	posts, err := post.FindAllPosts(server.DB)
 	if err != nil {
-		errList["No_user"] = "No Post Found"
+		errList["No_post"] = "No Post Found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"status": http.StatusNotFound,
 			"error":  errList,
@@ -280,8 +280,48 @@ func (server *Server) DeletePost(c *gin.Context) {
 		})
 		return
 	}
+	//Also delete the likes and the comments that this post have:
+	//_, err = post.DeleteAPost(server.DB)
+	//if err != nil {
+	//	errList["Other_error"] = "Please try again later"
+	//	c.JSON(http.StatusNotFound, gin.H{
+	//		"status": http.StatusNotFound,
+	//		"error":  errList,
+	//	})
+	//	return
+	//}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,
 		"response":  "post deleted",
+	})
+}
+
+func (server *Server) GetUserPosts(c *gin.Context) {
+
+	userID := c.Param("id")
+	// Is a valid user id given to us?
+	uid, err := strconv.ParseUint(userID, 10, 64)
+	if err != nil {
+		errList["Invalid_request"] = "Invalid Request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"error":  errList,
+		})
+		return
+	}
+	post := models.Post{}
+	posts, err := post.FindUserPosts(server.DB, uint32(uid))
+	if err != nil {
+		errList["No_post"] = "No Post Found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  errList,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": posts,
 	})
 }
