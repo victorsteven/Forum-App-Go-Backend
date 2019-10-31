@@ -13,7 +13,6 @@ func (s *Server) initializeRoutes() {
 	{
 		// Login Route
 		v1.POST("/login", s.Login)
-		//v1.POST("/logout", s.Logout)
 
 		//Users routes
 		v1.POST("/users", s.CreateUser)
@@ -24,6 +23,7 @@ func (s *Server) initializeRoutes() {
 		v1.POST("/password/forgot", s.ForgotPassword)
 		v1.POST("/password/reset", s.ResetPassword)
 
+		//This is already done, will be uncommented later
 		// v1.DELETE("/users/:id", middlewares.TokenAuthMiddleware(), s.DeleteUser)
 
 		//Posts routes
@@ -39,14 +39,9 @@ func (s *Server) initializeRoutes() {
 		v1.DELETE("/likes/:id", middlewares.TokenAuthMiddleware(), s.UnLikePost)
 
 		//Comment routes
-		v1.POST("/createcomment/:id", middlewares.TokenAuthMiddleware(), s.CreateComment)
+		v1.POST("/comments/:id", middlewares.TokenAuthMiddleware(), s.CreateComment)
 		v1.GET("/comments/:id", s.GetComments)
 		v1.PUT("/comments/:id", middlewares.TokenAuthMiddleware(), s.UpdateComment)
 		v1.DELETE("/comments/:id", middlewares.TokenAuthMiddleware(), s.DeleteComment)
-		//v1.PUT("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdatePost)
-		//v1.DELETE("/posts/:id", middlewares.TokenAuthMiddleware(), s.DeletePost)
-
-		//profile
-		//v1.POST("/posts/:id", middlewares.TokenAuthMiddleware(), s.UpdateProfile)
 	}
 }
