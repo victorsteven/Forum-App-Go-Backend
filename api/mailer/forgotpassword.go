@@ -18,7 +18,6 @@ func SendResetPassword(reset_password *models.ResetPassword) error {
 			Name: "SeamFlow",
 			Link: "https://seamflow.com",
 			// Optional product logo
-			//Logo: "http://www.duchess-france.org/wp-content/uploads/2016/01/gopher.png",
 		},
 	}
 

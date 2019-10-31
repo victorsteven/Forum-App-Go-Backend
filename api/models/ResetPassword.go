@@ -27,3 +27,13 @@ func (resetPassword *ResetPassword) SaveDatails(db *gorm.DB) (*ResetPassword, er
 	}
 	return resetPassword, nil
 }
+
+func (resetPassword *ResetPassword) DeleteDatails(db *gorm.DB) (int64, error) {
+
+	db = db.Debug().Model(&ResetPassword{}).Where("id = ?", resetPassword.ID).Take(&ResetPassword{}).Delete(&ResetPassword{})
+
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	return db.RowsAffected, nil
+}

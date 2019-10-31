@@ -234,19 +234,6 @@ func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
 	return db.RowsAffected, nil
 }
 
-//func (u *User) UserPassword(db *gorm.DB) error {
-//	var err error
-//	err = db.Debug().Model(User{}).Where("email = ?", u.Email).Take(&u).Error
-//	if err != nil {
-//		return  err
-//	}
-//	if gorm.IsRecordNotFoundError(err) {
-//		return errors.New("User Not Found")
-//	}
-//
-//	return nil
-//}
-
 func (u *User) UpdatePassword(db *gorm.DB) (error) {
 	db = db.Debug().Model(&User{}).Where("email = ?", u.Email).Take(&User{}).UpdateColumns(
 		map[string]interface{}{

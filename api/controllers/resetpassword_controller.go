@@ -96,6 +96,7 @@ func (server *Server) ForgotPassword(c *gin.Context) {
 func (server *Server) ResetPassword(c *gin.Context) {
 	//remove any possible error, because the frontend dont reload
 	errList = map[string]string{}
+
 	// Start processing the request
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
@@ -121,7 +122,7 @@ func (server *Server) ResetPassword(c *gin.Context) {
 	user := models.User{}
 	resetPassword := models.ResetPassword{}
 
-	err = server.DB.Debug().Model(models.ResetPassword{}).Where("token = ?", 	requestBody["token"]).Take(&resetPassword).Error
+	err = server.DB.Debug().Model(models.ResetPassword{}).Where("token = ?", requestBody["token"]).Take(&resetPassword).Error
 	if err != nil {
 		errList["Invalid_token"] = "Invalid link. Try requesting again"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -182,50 +183,20 @@ func (server *Server) ResetPassword(c *gin.Context) {
 			})
 			return
 		}
+		//Delete the token record so is not used again:
+		_, err = resetPassword.DeleteDatails(server.DB)
+		if err != nil {
+			errList["Cannot_delete"] = "Cannot Delete record, Pls try again later"
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": http.StatusInternalServerError,
+				"error":  errList,
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"status":   http.StatusOK,
 			"response": "Success",
 		})
 	}
-
-	//The password fields not entered, so update only the email
-
-	//newUser.Prepare()
-	//errorMessages := resetPassword.Validate("reset")
-	//if len(errorMessages) > 0 {
-	//	errList = errorMessages
-	//	c.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"status": http.StatusUnprocessableEntity,
-	//		"error":  errList,
-	//	})
-	//	return
-	//}
-
-	//generate the token:
-	//token := security.TokenHash(requestBody["email"])
-	//resetPassword.Email = requestBody["email"]
-	//resetPassword.Token = token
-	//resetRecord, err := resetPassword.SaveDatails(server.DB)
-	//if err != nil {
-	//	//formattedError := formaterror.FormatError(err.Error())
-	//	//errList = formattedError
-	//	c.JSON(http.StatusInternalServerError, gin.H{
-	//		"status": http.StatusInternalServerError,
-	//		"error":  err,
-	//	})
-	//	return
-	//}
-
-	//c.JSON(http.StatusCreated, gin.H{
-	//	"status":   http.StatusCreated,
-	//	"response": userCreated,
-	//})
-
-
-	//Send welcome mail to the user:
-	//err = mailer.SendResetPassword(resetRecord)
-	//if err != nil {
-	//	fmt.Printf("this is the sending mail error: %s\n", err)
-	//}
-
 }
