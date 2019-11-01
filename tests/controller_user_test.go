@@ -100,7 +100,7 @@ func TestCreateUser(t *testing.T) {
 				assert.Equal(t, responseMap["Required_email"], "Required Email")
 			}
 			if responseMap["Required_password"] != nil {
-				assert.Equal(t, responseMap["Required_password"], "Required Password")
+				assert.Equal(t, responseMap["Required_password"], "Required Password s")
 			}
 		}
 	}
