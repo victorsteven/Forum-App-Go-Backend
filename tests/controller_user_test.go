@@ -14,11 +14,12 @@ import (
 
 func TestCreateUser(t *testing.T) {
 
+	gin.SetMode(gin.TestMode)
+
 	err := refreshUserTable()
 	if err != nil {
 		log.Fatal(err)
 	}
-	//errorMessage :=  map[string]string{}
 	samples := []struct {
 		inputJSON    string
 		statusCode   int
@@ -100,58 +101,47 @@ func TestCreateUser(t *testing.T) {
 				assert.Equal(t, responseMap["Required_email"], "Required Email")
 			}
 			if responseMap["Required_password"] != nil {
-				assert.Equal(t, responseMap["Required_password"], "Required Password s")
+				assert.Equal(t, responseMap["Required_password"], "Required Password")
 			}
 		}
 	}
 }
 
-//func TestPingRoute(t *testing.T) {
-//	router := setupRouter()
-//
-//	w := httptest.NewRecorder()
-//	req, _ := http.NewRequest("GET", "/ping", nil)
-//	router.ServeHTTP(w, req)
-//
-//	assert.Equal(t, 200, w.Code)
-//	assert.Equal(t, "pong", w.Body.String())
-//}
+func TestGetUsers(t *testing.T) {
 
-//func TestGetUsers(t *testing.T) {
-//
-//	// Switch to test mode so you don't get such noisy output
-//	gin.SetMode(gin.TestMode)
-//
-//	err := refreshUserTable()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	_, err = seedUsers()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	r := gin.Default()
-//	r.GET("/users", server.GetUsers)
-//
-//	req, err := http.NewRequest(http.MethodGet, "/users", nil)
-//	if err != nil {
-//		t.Errorf("this is the error: %v\n", err)
-//	}
-//	rr := httptest.NewRecorder()
-//	r.ServeHTTP(rr, req)
-//
-//	usersMap := make(map[string]interface{})
-//
-//	err = json.Unmarshal([]byte(rr.Body.String()), &usersMap)
-//	if err != nil {
-//		log.Fatalf("Cannot convert to json: %v\n", err)
-//	}
-//	// This is so that we can get the length of the users:
-//	theUsers := usersMap["response"].([]interface{})
-//	assert.Equal(t, rr.Code, http.StatusOK)
-//	assert.Equal(t, len(theUsers), 2)
-//}
+	// Switch to test mode so you don't get such noisy output
+	gin.SetMode(gin.TestMode)
+
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = seedUsers()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r := gin.Default()
+	r.GET("/users", server.GetUsers)
+
+	req, err := http.NewRequest(http.MethodGet, "/users", nil)
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	usersMap := make(map[string]interface{})
+
+	err = json.Unmarshal([]byte(rr.Body.String()), &usersMap)
+	if err != nil {
+		log.Fatalf("Cannot convert to json: %v\n", err)
+	}
+	// This is so that we can get the length of the users:
+	theUsers := usersMap["response"].([]interface{})
+	assert.Equal(t, rr.Code, http.StatusOK)
+	assert.Equal(t, len(theUsers), 2)
+}
 
 //func TestGetUserByID(t *testing.T) {
 //
