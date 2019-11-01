@@ -198,15 +198,15 @@ func (u *User) UpdateAUserAvatar(db *gorm.DB, uid uint32) (*User, error) {
 	return u, nil
 }
 
-func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
-
-	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})
-
-	if db.Error != nil {
-		return 0, db.Error
-	}
-	return db.RowsAffected, nil
-}
+//func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
+//
+//	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})
+//
+//	if db.Error != nil {
+//		return 0, db.Error
+//	}
+//	return db.RowsAffected, nil
+//}
 
 func (u *User) UpdatePassword(db *gorm.DB) (error) {
 	db = db.Debug().Model(&User{}).Where("email = ?", u.Email).Take(&User{}).UpdateColumns(

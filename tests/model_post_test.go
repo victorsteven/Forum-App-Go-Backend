@@ -19,6 +19,7 @@ func TestFindAllPosts(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error seeding user and post  table %v\n", err)
 	}
+	//Where postInstance is an instance of the post initialize in setup_test.go
 	posts, err := postInstance.FindAllPosts(server.DB)
 	if err != nil {
 		t.Errorf("this is the error getting the posts: %v\n", err)
@@ -33,12 +34,10 @@ func TestSavePost(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error user and post refreshing table %v\n", err)
 	}
-
 	user, err := seedOneUser()
 	if err != nil {
 		log.Fatalf("Cannot seed user %v\n", err)
 	}
-
 	newPost := models.Post{
 		ID:       1,
 		Title:    "This is the title",
@@ -66,7 +65,7 @@ func TestGetPostByID(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error Seeding table")
 	}
-	foundPost, err := postInstance.FindPostByID(server.DB, post.ID)
+	foundPost, err := post.FindPostByID(server.DB, post.ID)
 	if err != nil {
 		t.Errorf("this is the error getting one user: %v\n", err)
 		return
@@ -92,7 +91,7 @@ func TestUpdateAPost(t *testing.T) {
 		Content:  "modiupdate@gmail.com",
 		AuthorID: post.AuthorID,
 	}
-	updatedPost, err := postUpdate.UpdateAPost(server.DB, post.ID)
+	updatedPost, err := postUpdate.UpdateAPost(server.DB)
 	if err != nil {
 		t.Errorf("this is the error updating the user: %v\n", err)
 		return
@@ -113,14 +112,10 @@ func TestDeleteAPost(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error Seeding tables")
 	}
-	isDeleted, err := postInstance.DeleteAPost(server.DB, post.ID, post.AuthorID)
+	isDeleted, err := post.DeleteAPost(server.DB)
 	if err != nil {
 		t.Errorf("this is the error updating the user: %v\n", err)
 		return
 	}
-	//one shows that the record has been deleted or:
-	// assert.Equal(t, int(isDeleted), 1)
-
-	//Can be done this way too
 	assert.Equal(t, isDeleted, int64(1))
 }

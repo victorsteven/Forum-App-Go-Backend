@@ -16,12 +16,10 @@ func TestFindAllUsers(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	_, err = seedUsers()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	users, err := userInstance.FindAllUsers(server.DB)
 	if err != nil {
 		t.Errorf("this is the error getting the users: %v\n", err)
@@ -36,7 +34,6 @@ func TestSaveUser(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	newUser := models.User{
 		ID:       1,
 		Email:    "test@gmail.com",
@@ -59,7 +56,6 @@ func TestFindUserByID(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	user, err := seedOneUser()
 	if err != nil {
 		log.Fatalf("cannot seed users table: %v", err)
@@ -80,12 +76,10 @@ func TestUpdateAUser(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	user, err := seedOneUser()
 	if err != nil {
 		log.Fatalf("Cannot seed user: %v\n", err)
 	}
-
 	userUpdate := models.User{
 		ID:       1,
 		Username: "modiUpdate",
@@ -102,27 +96,20 @@ func TestUpdateAUser(t *testing.T) {
 	assert.Equal(t, updatedUser.Username, userUpdate.Username)
 }
 
-func TestDeleteAUser(t *testing.T) {
-
-	err := refreshUserTable()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	user, err := seedOneUser()
-
-	if err != nil {
-		log.Fatalf("Cannot seed user: %v\n", err)
-	}
-
-	isDeleted, err := userInstance.DeleteAUser(server.DB, user.ID)
-	if err != nil {
-		t.Errorf("this is the error updating the user: %v\n", err)
-		return
-	}
-	//one shows that the record has been deleted or:
-	// assert.Equal(t, int(isDeleted), 1)
-
-	//Can be done this way too
-	assert.Equal(t, isDeleted, int64(1))
-}
+//func TestDeleteAUser(t *testing.T) {
+//
+//	err := refreshUserTable()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	user, err := seedOneUser()
+//	if err != nil {
+//		log.Fatalf("Cannot seed user: %v\n", err)
+//	}
+//	isDeleted, err := userInstance.DeleteAUser(server.DB, user.ID)
+//	if err != nil {
+//		t.Errorf("this is the error updating the user: %v\n", err)
+//		return
+//	}
+//	assert.Equal(t, isDeleted, int64(1))
+//}
