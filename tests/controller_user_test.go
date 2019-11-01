@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"testing"
 	"bytes"
@@ -8,84 +9,101 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	//"gopkg.in/go-playground/assert.v1"
+	"github.com/stretchr/testify/assert"
+
 )
 
-//func TestCreateUser(t *testing.T) {
+func TestCreateUser(t *testing.T) {
+
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	samples := []struct {
+		inputJSON    string
+		statusCode   int
+		username     string
+		email        string
+		errorMessage string
+	}{
+		{
+			inputJSON:    `{"username":"Pet", "email": "pet@gmail.com", "password": "password"}`,
+			statusCode:   201,
+			username:     "Pet",
+			email:        "pet@gmail.com",
+			errorMessage: "",
+		},
+		//{
+		//	inputJSON:    `{"username":"Frank", "email": "pet@gmail.com", "password": "password"}`,
+		//	statusCode:   500,
+		//	errorMessage: "Email Already Taken",
+		//},
+		//{
+		//	inputJSON:    `{"username":"Pet", "email": "grand@gmail.com", "password": "password"}`,
+		//	statusCode:   500,
+		//	errorMessage: "Username Already Taken",
+		//},
+		//{
+		//	inputJSON:    `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
+		//	statusCode:   422,
+		//	errorMessage: "Invalid Email",
+		//},
+		//{
+		//	inputJSON:    `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
+		//	statusCode:   422,
+		//	errorMessage: "Required Username",
+		//},
+		//{
+		//	inputJSON:    `{"username": "Kan", "email": "", "password": "password"}`,
+		//	statusCode:   422,
+		//	errorMessage: "Required Email",
+		//},
+		//{
+		//	inputJSON:    `{"username": "Kan", "email": "kan@gmail.com", "password": ""}`,
+		//	statusCode:   422,
+		//	errorMessage: "Required Password",
+		//},
+	}
+
+	for _, v := range samples {
+		r := gin.Default()
+		r.POST("/users", server.CreateUser)
+		req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(v.inputJSON))
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			fmt.Printf("Cannot convert to json: %v", err)
+		}
+		//casting the interface to map:
+		responseMap := responseInterface["response"].(map[string]interface{})
+
+		assert.Equal(t, rr.Code, v.statusCode)
+		if v.statusCode == 201 {
+			assert.Equal(t, responseMap["username"], v.username)
+			assert.Equal(t, responseMap["email"], v.email)
+		}
+		//if v.statusCode == 422 || v.statusCode == 500 && v.errorMessage != "" {
+		//	assert.Equal(t, responseMap["error"], v.errorMessage)
+		//}
+	}
+}
+
+//func TestPingRoute(t *testing.T) {
+//	router := setupRouter()
 //
-//	err := refreshUserTable()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	samples := []struct {
-//		inputJSON    string
-//		statusCode   int
-//		username     string
-//		email        string
-//		errorMessage string
-//	}{
-//		{
-//			inputJSON:    `{"username":"Pet", "email": "pet@gmail.com", "password": "password"}`,
-//			statusCode:   201,
-//			username:     "Pet",
-//			email:        "pet@gmail.com",
-//			errorMessage: "",
-//		},
-//		{
-//			inputJSON:    `{"username":"Frank", "email": "pet@gmail.com", "password": "password"}`,
-//			statusCode:   500,
-//			errorMessage: "Email Already Taken",
-//		},
-//		{
-//			inputJSON:    `{"username":"Pet", "email": "grand@gmail.com", "password": "password"}`,
-//			statusCode:   500,
-//			errorMessage: "Username Already Taken",
-//		},
-//		{
-//			inputJSON:    `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
-//			statusCode:   422,
-//			errorMessage: "Invalid Email",
-//		},
-//		{
-//			inputJSON:    `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
-//			statusCode:   422,
-//			errorMessage: "Required Username",
-//		},
-//		{
-//			inputJSON:    `{"username": "Kan", "email": "", "password": "password"}`,
-//			statusCode:   422,
-//			errorMessage: "Required Email",
-//		},
-//		{
-//			inputJSON:    `{"username": "Kan", "email": "kan@gmail.com", "password": ""}`,
-//			statusCode:   422,
-//			errorMessage: "Required Password",
-//		},
-//	}
+//	w := httptest.NewRecorder()
+//	req, _ := http.NewRequest("GET", "/ping", nil)
+//	router.ServeHTTP(w, req)
 //
-//	for _, v := range samples {
-//
-//		req, err := http.NewRequest("POST", "/users", bytes.NewBufferString(v.inputJSON))
-//		if err != nil {
-//			t.Errorf("this is the error: %v", err)
-//		}
-//		rr := httptest.NewRecorder()
-//		handler := http.HandlerFunc(server.CreateUser)
-//		handler.ServeHTTP(rr, req)
-//
-//		responseMap := make(map[string]interface{})
-//		err = json.Unmarshal([]byte(rr.Body.String()), &responseMap)
-//		if err != nil {
-//			fmt.Printf("Cannot convert to json: %v", err)
-//		}
-//		assert.Equal(t, rr.Code, v.statusCode)
-//		if v.statusCode == 201 {
-//			assert.Equal(t, responseMap["username"], v.username)
-//			assert.Equal(t, responseMap["email"], v.email)
-//		}
-//		if v.statusCode == 422 || v.statusCode == 500 && v.errorMessage != "" {
-//			assert.Equal(t, responseMap["error"], v.errorMessage)
-//		}
-//	}
+//	assert.Equal(t, 200, w.Code)
+//	assert.Equal(t, "pong", w.Body.String())
 //}
 
 //func TestGetUsers(t *testing.T) {
