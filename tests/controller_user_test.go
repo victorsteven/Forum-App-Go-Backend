@@ -9,9 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	//"gopkg.in/go-playground/assert.v1"
 	"github.com/stretchr/testify/assert"
-
 )
 
 func TestCreateUser(t *testing.T) {
@@ -20,53 +18,47 @@ func TestCreateUser(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	//errorMessage :=  map[string]string{}
 	samples := []struct {
 		inputJSON    string
 		statusCode   int
 		username     string
 		email        string
-		errorMessage string
 	}{
 		{
 			inputJSON:    `{"username":"Pet", "email": "pet@gmail.com", "password": "password"}`,
 			statusCode:   201,
 			username:     "Pet",
 			email:        "pet@gmail.com",
-			errorMessage: "",
 		},
-		//{
-		//	inputJSON:    `{"username":"Frank", "email": "pet@gmail.com", "password": "password"}`,
-		//	statusCode:   500,
-		//	errorMessage: "Email Already Taken",
-		//},
-		//{
-		//	inputJSON:    `{"username":"Pet", "email": "grand@gmail.com", "password": "password"}`,
-		//	statusCode:   500,
-		//	errorMessage: "Username Already Taken",
-		//},
-		//{
-		//	inputJSON:    `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
-		//	statusCode:   422,
-		//	errorMessage: "Invalid Email",
-		//},
-		//{
-		//	inputJSON:    `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
-		//	statusCode:   422,
-		//	errorMessage: "Required Username",
-		//},
-		//{
-		//	inputJSON:    `{"username": "Kan", "email": "", "password": "password"}`,
-		//	statusCode:   422,
-		//	errorMessage: "Required Email",
-		//},
-		//{
-		//	inputJSON:    `{"username": "Kan", "email": "kan@gmail.com", "password": ""}`,
-		//	statusCode:   422,
-		//	errorMessage: "Required Password",
-		//},
+		{
+			inputJSON:    `{"username":"Frank", "email": "pet@gmail.com", "password": "password"}`,
+			statusCode:   500,
+		},
+		{
+			inputJSON:    `{"username":"Pet", "email": "grand@gmail.com", "password": "password"}`,
+			statusCode:   500,
+		},
+		{
+			inputJSON:    `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
+			statusCode:   422,
+		},
+		{
+			inputJSON:    `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
+			statusCode:   422,
+		},
+		{
+			inputJSON:    `{"username": "Kan", "email": "", "password": "password"}`,
+			statusCode:   422,
+		},
+		{
+			inputJSON:    `{"username": "Kan", "email": "kan@gmail.com", "password": ""}`,
+			statusCode:   422,
+		},
 	}
 
 	for _, v := range samples {
+
 		r := gin.Default()
 		r.POST("/users", server.CreateUser)
 		req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(v.inputJSON))
@@ -81,17 +73,36 @@ func TestCreateUser(t *testing.T) {
 		if err != nil {
 			fmt.Printf("Cannot convert to json: %v", err)
 		}
-		//casting the interface to map:
-		responseMap := responseInterface["response"].(map[string]interface{})
 
 		assert.Equal(t, rr.Code, v.statusCode)
 		if v.statusCode == 201 {
+			//casting the interface to map:
+			responseMap := responseInterface["response"].(map[string]interface{})
 			assert.Equal(t, responseMap["username"], v.username)
 			assert.Equal(t, responseMap["email"], v.email)
 		}
-		//if v.statusCode == 422 || v.statusCode == 500 && v.errorMessage != "" {
-		//	assert.Equal(t, responseMap["error"], v.errorMessage)
-		//}
+		if v.statusCode == 422 || v.statusCode == 500  {
+			responseMap := responseInterface["error"].(map[string]interface{})
+
+			if responseMap["Taken_email"] != nil {
+				assert.Equal(t, responseMap["Taken_email"], "Email Already Taken")
+			}
+			if responseMap["Taken_username"] != nil {
+				assert.Equal(t, responseMap["Taken_username"], "Username Already Taken")
+			}
+			if responseMap["Invalid_email"] != nil {
+				assert.Equal(t, responseMap["Invalid_email"], "Invalid Email")
+			}
+			if responseMap["Required_username"] != nil {
+				assert.Equal(t, responseMap["Required_username"], "Required Username")
+			}
+			if responseMap["Required_email"] != nil {
+				assert.Equal(t, responseMap["Required_email"], "Required Email")
+			}
+			if responseMap["Required_password"] != nil {
+				assert.Equal(t, responseMap["Required_password"], "Required Password")
+			}
+		}
 	}
 }
 
