@@ -3,6 +3,7 @@ package tests
 import (
 	"github.com/gin-gonic/gin"
 	"log"
+	"strconv"
 	"testing"
 	"bytes"
 	"encoding/json"
@@ -143,68 +144,76 @@ func TestGetUsers(t *testing.T) {
 	assert.Equal(t, len(theUsers), 2)
 }
 
-//func TestGetUserByID(t *testing.T) {
-//
-//	// Switch to test mode so you don't get such noisy output
-//	gin.SetMode(gin.TestMode)
-//
-//	err := refreshUserTable()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	user, err := seedOneUser()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	userSample := []struct {
-//		id           string
-//		statusCode   int
-//		username     string
-//		email        string
-//		errorMessage string
-//	}{
-//		{
-//			id:         strconv.Itoa(int(user.ID)),
-//			statusCode: 200,
-//			username:   user.Username,
-//			email:      user.Email,
-//		},
-//		{
-//			id:           "unknwon",
-//			statusCode:   400,
-//			errorMessage: "Invalid Request",
-//		},
-//	}
-//	for _, v := range userSample {
-//		req, _ := http.NewRequest("GET", "/users/"+v.id, nil)
-//		rr := httptest.NewRecorder()
-//
-//		r := gin.Default()
-//		r.GET("/users/:id", server.GetUser)
-//		r.ServeHTTP(rr, req)
-//
-//		userMap := make(map[string]interface{})
-//		err = json.Unmarshal([]byte(rr.Body.String()), &userMap)
-//		if err != nil {
-//			log.Fatalf("Cannot convert to json: %v", err)
-//		}
-//		theUser := userMap["response"]                  // Get the response from the payload
-//		userData, _ := theUser.(map[string]interface{}) //converting theUser to a map from a interface
-//
-//		theError := userMap["error"]                      // Get the error from the payload
-//		errorData, _ := theError.(map[string]interface{}) //converting theError to a map from a interface
-//
-//		assert.Equal(t, rr.Code, v.statusCode)
-//		if v.statusCode == 200 {
-//			assert.Equal(t, user.Username, userData["username"])
-//			assert.Equal(t, user.Email, userData["email"])
-//		}
-//		if v.statusCode == 400 {
-//			assert.Equal(t, v.errorMessage, errorData["invalid_request"])
-//		}
-//	}
-//}
+func TestGetUserByID(t *testing.T) {
+
+	// Switch to test mode so you don't get such noisy output
+	gin.SetMode(gin.TestMode)
+
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	user, err := seedOneUser()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	userSample := []struct {
+		id           string
+		statusCode   int
+		username     string
+		email        string
+	}{
+		{
+			id:         strconv.Itoa(int(user.ID)),
+			statusCode: 200,
+			username:   user.Username,
+			email:      user.Email,
+		},
+		{
+			id:           "unknwon",
+			statusCode:   400,
+		},
+		{
+			id:           strconv.Itoa(12322), //an id that does not exist
+			statusCode:   404,
+		},
+	}
+	for _, v := range userSample {
+		req, _ := http.NewRequest("GET", "/users/"+v.id, nil)
+		rr := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.GET("/users/:id", server.GetUser)
+		r.ServeHTTP(rr, req)
+
+		userMap := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &userMap)
+		if err != nil {
+			log.Fatalf("Cannot convert to json: %v", err)
+		}
+		assert.Equal(t, rr.Code, v.statusCode)
+
+		if v.statusCode == 200 {
+			theUser := userMap["response"]                  	// Get the response from the payload
+			userData, _ := theUser.(map[string]interface{}) 	//converting theUser to a map from a interface
+			assert.Equal(t, user.Username, userData["username"])
+			assert.Equal(t, user.Email, userData["email"])
+		}
+		if v.statusCode == 400  || v.statusCode == 404{
+			theError := userMap["error"]                      	// Get the error from the payload
+			errorData, _ := theError.(map[string]interface{}) 	//converting theError to a map from a interface
+
+			if errorData["Invalid_request"] != nil {
+				assert.Equal(t, errorData["Invalid_request"], "Invalid Request")
+			}
+			if errorData["No_user"] != nil {
+				assert.Equal(t, errorData["No_user"], "No User Found")
+			}
+		}
+	}
+}
 
 //func TestUpdateUser(t *testing.T) {
 //
