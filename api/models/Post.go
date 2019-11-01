@@ -119,20 +119,10 @@ func (p *Post) UpdateAPost(db *gorm.DB) (*Post, error) {
 
 func (p *Post) DeleteAPost(db *gorm.DB) (int64, error) {
 
-	db = db.Debug().Model(&Post{}).Where("id = ? and author_id = ?", p.ID, p.AuthorID).Take(&Post{}).Delete(&Post{})
+	db = db.Debug().Model(&Post{}).Where("id = ?", p.ID).Take(&Post{}).Delete(&Post{})
 	if db.Error != nil {
 		return 0, db.Error
 	}
-
-	//Also delete the likes and the comments:
-	//db = db.Debug().Model(&Comment{}).Where("post_id = ?", p.ID).Take(&Comment{}).Delete(&Comment{})
-	//if db.Error != nil {
-	//	return 0, db.Error
-	//}
-	//db = db.Debug().Model(&Like{}).Where("post_id = ?", p.ID).Take(&Like{}).Delete(&Like{})
-	//if db.Error != nil {
-	//	return 0, db.Error
-	//}
 	return db.RowsAffected, nil
 }
 

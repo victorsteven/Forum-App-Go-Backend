@@ -23,19 +23,6 @@ type User struct {
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
-//type UserJson struct {
-//	  ID uint32
-//    Username string
-//   Email string
-//}
-//func (u *User) UserToReturn() UserJson {
-//	return UserJson{
-//		ID: u.ID,
-//		Username: u.Username,
-//		Email: u.Email
-//	}
-//}
-
 func (u *User) BeforeSave() error {
 	hashedPassword, err := security.Hash(u.Password)
 	if err != nil {
@@ -97,19 +84,6 @@ func (u *User) Validate(action string) map[string]string {
 				errorMessages["Invalid_email"] = err.Error()
 			}
 		}
-
-	//case "resetPassword":
-	//	if u.Password == "" {
-	//		err = errors.New("Required Email")
-	//		errorMessages["Required_email"] = err.Error()
-	//	}
-	//	if u.Email != "" {
-	//		if err = checkmail.ValidateFormat(u.Email); err != nil {
-	//			err = errors.New("Invalid Email")
-	//			errorMessages["Invalid_email"] = err.Error()
-	//		}
-	//	}
-
 	default:
 		if u.Username == "" {
 			err = errors.New("Required Username")

@@ -274,22 +274,34 @@ func (server *Server) DeletePost(c *gin.Context) {
 	_, err = post.DeleteAPost(server.DB)
 	if err != nil {
 		errList["Other_error"] = "Please try again later"
-		c.JSON(http.StatusNotFound, gin.H{
-			"status": http.StatusNotFound,
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  err,
+		})
+		return
+	}
+	comment := models.Comment{}
+	like := models.Like{}
+
+	//Also delete the likes and the comments that this post have:
+	_, err = comment.DeletePostComments(server.DB, pid)
+	if err != nil {
+		errList["Other_error"] = "Please try again later"
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
 			"error":  errList,
 		})
 		return
 	}
-	//Also delete the likes and the comments that this post have:
-	//_, err = post.DeleteAPost(server.DB)
-	//if err != nil {
-	//	errList["Other_error"] = "Please try again later"
-	//	c.JSON(http.StatusNotFound, gin.H{
-	//		"status": http.StatusNotFound,
-	//		"error":  errList,
-	//	})
-	//	return
-	//}
+	_, err = like.DeletePostLikes(server.DB, pid)
+	if err != nil {
+		errList["Other_error"] = "Please try again later"
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": http.StatusInternalServerError,
+			"error":  errList,
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": http.StatusOK,
