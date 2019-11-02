@@ -202,6 +202,9 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
+	post.ID = origPost.ID //this is important to tell the model the post id to update, the other update field are set above
+	post.AuthorID = origPost.AuthorID
+
 	post.Prepare()
 	errorMessages := post.Validate()
 	if len(errorMessages) > 0 {
@@ -212,19 +215,15 @@ func (server *Server) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
-	post.ID = origPost.ID //this is important to tell the model the post id to update, the other update field are set above
-
 	postUpdated, err := post.UpdateAPost(server.DB)
 	if err != nil {
-		formattedError := formaterror.FormatError(err.Error())
-		errList = formattedError
+		errList := formaterror.FormatError(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": http.StatusInternalServerError,
-			"error":  err,
+			"error":  errList,
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
 		"response": postUpdated,
@@ -275,7 +274,6 @@ func (server *Server) DeletePost(c *gin.Context) {
 		})
 		return
 	}
-
 	// If all the conditions are met, delete the post
 	_, err = post.DeleteAPost(server.DB)
 	if err != nil {

@@ -21,7 +21,6 @@ type Post struct {
 }
 
 func (p *Post) Prepare() {
-	p.ID = 0
 	p.Title = html.EscapeString(strings.TrimSpace(p.Title))
 	p.Content = html.EscapeString(strings.TrimSpace(p.Content))
 	p.Author = User{}
