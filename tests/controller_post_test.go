@@ -207,7 +207,7 @@ func TestGetPostByID(t *testing.T) {
 		responseInterface := make(map[string]interface{})
 		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
 		if err != nil {
-			fmt.Printf("Cannot convert to json: %v", err)
+			t.Errorf("Cannot convert to json: %v", err)
 		}
 		assert.Equal(t, rr.Code, v.statusCode)
 		if v.statusCode == 200 {
@@ -267,7 +267,6 @@ func TestUpdatePost(t *testing.T) {
 	}
 	token := tokenInterface["token"] //get only the token
 	tokenString := fmt.Sprintf("Bearer %v", token)
-	fmt.Println("the token", tokenString)
 
 	samples := []struct {
 		id         string
@@ -275,7 +274,6 @@ func TestUpdatePost(t *testing.T) {
 		statusCode int
 		title      string
 		content    string
-		author_id  uint32
 		tokenGiven string
 	}{
 		{
@@ -378,109 +376,110 @@ func TestUpdatePost(t *testing.T) {
 	}
 }
 
-// func TestDeletePost(t *testing.T) {
+func TestDeletePost(t *testing.T) {
 
-// 	var PostUserEmail, PostUserPassword string
-// 	var PostUserID uint32
-// 	var AuthPostID uint64
+	gin.SetMode(gin.TestMode)
 
-// 	err := refreshUserAndPostTable()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	users, posts, err := seedUsersAndPosts()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	//Let's get only the Second user
-// 	for _, user := range users {
-// 		if user.ID == 1 {
-// 			continue
-// 		}
-// 		PostUserEmail = user.Email
-// 		PostUserPassword = "password" //Note the password in the database is already hashed, we want unhashed
-// 	}
-// 	//Login the user and get the authentication token
-// 	token, err := server.SignIn(PostUserEmail, PostUserPassword)
-// 	if err != nil {
-// 		log.Fatalf("cannot login: %v\n", err)
-// 	}
-// 	tokenString := fmt.Sprintf("Bearer %v", token)
+	var PostUserEmail, PostUserPassword string
+	// var AuthID uint32
+	var AuthPostID uint64
 
-// 	// Get only the second post
-// 	for _, post := range posts {
-// 		if post.ID == 1 {
-// 			continue
-// 		}
-// 		AuthPostID = post.ID
-// 		PostUserID = post.AuthorID
-// 	}
-// 	postSample := []struct {
-// 		id           string
-// 		author_id    uint32
-// 		tokenGiven   string
-// 		statusCode   int
-// 		errorMessage string
-// 	}{
-// 		{
-// 			// Convert int64 to int first before converting to string
-// 			id:           strconv.Itoa(int(AuthPostID)),
-// 			author_id:    PostUserID,
-// 			tokenGiven:   tokenString,
-// 			statusCode:   204,
-// 			errorMessage: "",
-// 		},
-// 		{
-// 			// When empty token is passed
-// 			id:           strconv.Itoa(int(AuthPostID)),
-// 			author_id:    PostUserID,
-// 			tokenGiven:   "",
-// 			statusCode:   401,
-// 			errorMessage: "Unauthorized",
-// 		},
-// 		{
-// 			// When incorrect token is passed
-// 			id:           strconv.Itoa(int(AuthPostID)),
-// 			author_id:    PostUserID,
-// 			tokenGiven:   "This is an incorrect token",
-// 			statusCode:   401,
-// 			errorMessage: "Unauthorized",
-// 		},
-// 		{
-// 			id:         "unknwon",
-// 			tokenGiven: tokenString,
-// 			statusCode: 400,
-// 		},
-// 		{
-// 			id:           strconv.Itoa(int(1)),
-// 			author_id:    1,
-// 			statusCode:   401,
-// 			errorMessage: "Unauthorized",
-// 		},
-// 	}
+	err := refreshUserAndPostTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	users, posts, err := seedUsersAndPosts()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Get only the second user
+	for _, user := range users {
+		if user.ID == 1 {
+			continue
+		}
+		PostUserEmail = user.Email
+		PostUserPassword = "password" //Note the password in the database is already hashed, we want unhashed
+	}
+	// Get only the second post
+	for _, post := range posts {
+		if post.ID == 1 {
+			continue
+		}
+		AuthPostID = post.ID
+	}
+	//Login the user and get the authentication token
+	tokenInterface, err := server.SignIn(PostUserEmail, PostUserPassword)
+	if err != nil {
+		log.Fatalf("cannot login: %v\n", err)
+	}
+	token := tokenInterface["token"] //get only the token
+	tokenString := fmt.Sprintf("Bearer %v", token)
 
-// 	for _, v := range postSample {
+	postSample := []struct {
+		id           string
+		tokenGiven   string
+		statusCode   int
+		errorMessage string
+	}{
+		{
+			// Convert int64 to int first before converting to string
+			id:         strconv.Itoa(int(AuthPostID)),
+			tokenGiven: tokenString,
+			statusCode: 200,
+		},
+		{
+			// When empty token is passed
+			id:         strconv.Itoa(int(AuthPostID)),
+			tokenGiven: "",
+			statusCode: 401,
+		},
+		{
+			// When incorrect token is passed
+			id:         strconv.Itoa(int(AuthPostID)),
+			tokenGiven: "This is an incorrect token",
+			statusCode: 401,
+		},
+		{
+			id:         "unknwon",
+			tokenGiven: tokenString,
+			statusCode: 400,
+		},
+		{
+			id:           strconv.Itoa(int(1)),
+			statusCode:   401,
+			errorMessage: "Unauthorized",
+		},
+	}
 
-// 		req, _ := http.NewRequest("GET", "/posts", nil)
-// 		req = mux.SetURLVars(req, map[string]string{"id": v.id})
+	for _, v := range postSample {
+		r := gin.Default()
+		r.DELETE("/posts/:id", server.DeletePost)
+		req, _ := http.NewRequest(http.MethodDelete, "/posts/"+v.id, nil)
+		req.Header.Set("Authorization", v.tokenGiven)
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
 
-// 		rr := httptest.NewRecorder()
-// 		handler := http.HandlerFunc(server.DeletePost)
+		responseInterface := make(map[string]interface{})
 
-// 		req.Header.Set("Authorization", v.tokenGiven)
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			t.Errorf("Cannot convert to json here: %v", err)
+		}
+		assert.Equal(t, rr.Code, v.statusCode)
 
-// 		handler.ServeHTTP(rr, req)
+		if v.statusCode == 200 {
+			assert.Equal(t, responseInterface["response"], "Post deleted")
+		}
 
-// 		assert.Equal(t, rr.Code, v.statusCode)
+		if v.statusCode == 400 || v.statusCode == 401 {
+			responseMap := responseInterface["error"].(map[string]interface{})
 
-// 		if v.statusCode == 401 && v.errorMessage != "" {
-
-// 			responseMap := make(map[string]interface{})
-// 			err = json.Unmarshal([]byte(rr.Body.String()), &responseMap)
-// 			if err != nil {
-// 				t.Errorf("Cannot convert to json: %v", err)
-// 			}
-// 			assert.Equal(t, responseMap["error"], v.errorMessage)
-// 		}
-// 	}
-// }
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
+			}
+			if responseMap["Unauthorized"] != nil {
+				assert.Equal(t, responseMap["Unauthorized"], "Unauthorized")
+			}
+		}
+	}
+}

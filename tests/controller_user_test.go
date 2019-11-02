@@ -74,7 +74,7 @@ func TestCreateUser(t *testing.T) {
 		responseInterface := make(map[string]interface{})
 		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
 		if err != nil {
-			fmt.Printf("Cannot convert to json: %v", err)
+			t.Errorf("Cannot convert to json: %v", err)
 		}
 
 		assert.Equal(t, rr.Code, v.statusCode)
@@ -188,7 +188,7 @@ func TestGetUserByID(t *testing.T) {
 		responseInterface := make(map[string]interface{})
 		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
 		if err != nil {
-			fmt.Printf("Cannot convert to json: %v", err)
+			t.Errorf("Cannot convert to json: %v", err)
 		}
 
 		assert.Equal(t, rr.Code, v.statusCode)
@@ -360,8 +360,6 @@ func TestUpdateUser(t *testing.T) {
 
 	for _, v := range samples {
 
-		gin.SetMode(gin.TestMode)
-
 		r := gin.Default()
 
 		r.POST("/users/:id", server.UpdateUser)
@@ -476,22 +474,23 @@ func TestDeleteUser(t *testing.T) {
 		},
 	}
 	for _, v := range userSample {
-		req, _ := http.NewRequest("GET", "/users/"+v.id, nil)
+
+		r := gin.Default()
+		r.DELETE("/users/:id", server.DeleteUser)
+		req, _ := http.NewRequest(http.MethodDelete, "/users/"+v.id, nil)
 		req.Header.Set("Authorization", v.tokenGiven)
 		rr := httptest.NewRecorder()
-		r := gin.Default()
-		r.GET("/users/:id", server.DeleteUser)
 		r.ServeHTTP(rr, req)
 
 		responseInterface := make(map[string]interface{})
 		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
 		if err != nil {
-			fmt.Printf("Cannot convert to json: %v", err)
+			t.Errorf("Cannot convert to json: %v", err)
 		}
 		assert.Equal(t, rr.Code, v.statusCode)
 
 		if v.statusCode == 200 {
-			assert.Equal(t, responseInterface["response"], "User Deleted")
+			assert.Equal(t, responseInterface["response"], "User deleted")
 		}
 
 		if v.statusCode == 400 || v.statusCode == 401 {

@@ -512,6 +512,6 @@ func (server *Server) DeleteUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
-		"response": "User Deleted",
+		"response": "User deleted",
 	})
 }

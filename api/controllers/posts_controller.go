@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -244,6 +245,8 @@ func (server *Server) DeletePost(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("this is delete post sir")
+
 	// Is this user authenticated?
 	uid, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
@@ -280,36 +283,36 @@ func (server *Server) DeletePost(c *gin.Context) {
 		errList["Other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": http.StatusInternalServerError,
-			"error":  err,
+			"error":  errList,
 		})
 		return
 	}
-	comment := models.Comment{}
-	like := models.Like{}
+	// comment := models.Comment{}
+	// like := models.Like{}
 
 	//Also delete the likes and the comments that this post have:
-	_, err = comment.DeletePostComments(server.DB, pid)
-	if err != nil {
-		errList["Other_error"] = "Please try again later"
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"error":  errList,
-		})
-		return
-	}
-	_, err = like.DeletePostLikes(server.DB, pid)
-	if err != nil {
-		errList["Other_error"] = "Please try again later"
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": http.StatusInternalServerError,
-			"error":  errList,
-		})
-		return
-	}
+	// _, err = comment.DeletePostComments(server.DB, pid)
+	// if err != nil {
+	// 	errList["Other_error"] = "Please try again later"
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"status": http.StatusInternalServerError,
+	// 		"error":  errList,
+	// 	})
+	// 	return
+	// }
+	// _, err = like.DeletePostLikes(server.DB, pid)
+	// if err != nil {
+	// 	errList["Other_error"] = "Please try again later"
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"status": http.StatusInternalServerError,
+	// 		"error":  errList,
+	// 	})
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
-		"response": "post deleted",
+		"response": "Post deleted",
 	})
 }
 
