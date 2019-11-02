@@ -2,25 +2,26 @@ package models
 
 import (
 	"errors"
-	"github.com/victorsteven/fullstack/api/security"
 	"html"
 	"log"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/victorsteven/fullstack/api/security"
+
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
 )
 
 type User struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Username  string    `gorm:"size:255;not null;unique" json:"username"`
-	Email     string    `gorm:"size:100;not null;unique" json:"email"`
-	Password  string    `gorm:"size:100;not null;" json:"password"`
-	AvatarPath string  `gorm:"size:255;null;" json:"avatar_path"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID         uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	Username   string    `gorm:"size:255;not null;unique" json:"username"`
+	Email      string    `gorm:"size:100;not null;unique" json:"email"`
+	Password   string    `gorm:"size:100;not null;" json:"password"`
+	AvatarPath string    `gorm:"size:255;null;" json:"avatar_path"`
+	CreatedAt  time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt  time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 func (u *User) BeforeSave() error {
@@ -183,8 +184,8 @@ func (u *User) UpdateAUser(db *gorm.DB, uid uint32) (*User, error) {
 func (u *User) UpdateAUserAvatar(db *gorm.DB, uid uint32) (*User, error) {
 	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
-			"avatar_path":  u.AvatarPath,
-			"update_at": time.Now(),
+			"avatar_path": u.AvatarPath,
+			"update_at":   time.Now(),
 		},
 	)
 	if db.Error != nil {
@@ -198,17 +199,17 @@ func (u *User) UpdateAUserAvatar(db *gorm.DB, uid uint32) (*User, error) {
 	return u, nil
 }
 
-//func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
-//
-//	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})
-//
-//	if db.Error != nil {
-//		return 0, db.Error
-//	}
-//	return db.RowsAffected, nil
-//}
+func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
 
-func (u *User) UpdatePassword(db *gorm.DB) (error) {
+	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})
+
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	return db.RowsAffected, nil
+}
+
+func (u *User) UpdatePassword(db *gorm.DB) error {
 	db = db.Debug().Model(&User{}).Where("email = ?", u.Email).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
 			"password":  u.Password,

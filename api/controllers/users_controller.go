@@ -463,56 +463,55 @@ func (server *Server) UpdateUser(c *gin.Context) {
 /*
 * This to shut down a users account, u can uncomment and try it, also uncomment the model method in User.go
  */
-//func (server *Server) DeleteUser(c *gin.Context) {
-//
-//	//clear previous error if any
-//	errList = map[string]string{}
-//	var tokenID uint32
-//	userID := c.Param("id")
-//	// Check if the user id is valid
-//	uid, err := strconv.ParseUint(userID, 10, 32)
-//	if err != nil {
-//		errList["Invalid_request"] = "Invalid Request"
-//		c.JSON(http.StatusBadRequest, gin.H{
-//			"status": http.StatusBadRequest,
-//			"error":  errList,
-//		})
-//		return
-//	}
-//	// Get user id from the token for valid tokens
-//	tokenID, err = auth.ExtractTokenID(c.Request)
-//	if err != nil {
-//		errList["Unauthorized"] = "Unauthorized"
-//		c.JSON(http.StatusUnauthorized, gin.H{
-//			"status": http.StatusUnauthorized,
-//			"error":  errList,
-//		})
-//		return
-//	}
-//
-//	// If the id is not the authenticated user id
-//	if tokenID != 0 && tokenID != uint32(uid) {
-//		errList["Unauthorized"] = "Unauthorized"
-//		c.JSON(http.StatusUnauthorized, gin.H{
-//			"status": http.StatusUnauthorized,
-//			"error":  errList,
-//		})
-//		return
-//	}
-//
-//	user := models.User{}
-//
-//	_, err = user.DeleteAUser(server.DB, uint32(uid))
-//	if err != nil {
-//		errList["Other_error"] = "Please try again later"
-//		c.JSON(http.StatusNotFound, gin.H{
-//			"status": http.StatusNotFound,
-//			"error":  errList,
-//		})
-//		return
-//	}
-//	c.JSON(http.StatusNoContent, gin.H{
-//		"status":   http.StatusNoContent,
-//		"response": "User Deleted",
-//	})
-//}
+func (server *Server) DeleteUser(c *gin.Context) {
+
+	//clear previous error if any
+	errList = map[string]string{}
+	var tokenID uint32
+	userID := c.Param("id")
+	// Check if the user id is valid
+	uid, err := strconv.ParseUint(userID, 10, 32)
+	if err != nil {
+		errList["Invalid_request"] = "Invalid Request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
+			"error":  errList,
+		})
+		return
+	}
+	// Get user id from the token for valid tokens
+	tokenID, err = auth.ExtractTokenID(c.Request)
+	if err != nil {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
+	// If the id is not the authenticated user id
+	if tokenID != 0 && tokenID != uint32(uid) {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
+
+	user := models.User{}
+
+	_, err = user.DeleteAUser(server.DB, uint32(uid))
+	if err != nil {
+		errList["Other_error"] = "Please try again later"
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  errList,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": "User Deleted",
+	})
+}

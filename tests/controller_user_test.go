@@ -430,100 +430,88 @@ func TestUpdateUser(t *testing.T) {
 	}
 }
 
-// func TestDeleteUser(t *testing.T) {
+func TestDeleteUser(t *testing.T) {
 
-// 	var AuthEmail, AuthPassword string
-// 	var AuthID uint32
+	gin.SetMode(gin.TestMode)
 
-// 	err := refreshUserTable()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	user, err := seedOneUser()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Note: the value of the user password before it was hashed is "password". so:
+	password := "password"
 
-// 	users, err := seedUsers() //we need atleast two users to properly check the update
-// 	if err != nil {
-// 		log.Fatalf("Error seeding user: %v\n", err)
-// 	}
-// 	// Get only the first and log him in
-// 	for _, user := range users {
-// 		if user.ID == 2 {
-// 			continue
-// 		}
-// 		AuthID = user.ID
-// 		AuthEmail = user.Email
-// 		AuthPassword = "password" ////Note the password in the database is already hashed, we want unhashed
-// 	}
+	tokenInterface, err := server.SignIn(user.Email, password)
+	if err != nil {
+		log.Fatalf("cannot login: %v\n", err)
+	}
+	token := tokenInterface["token"] //get only the token
+	tokenString := fmt.Sprintf("Bearer %v", token)
 
-// 	//Login the user and get the authentication token
-// 	token, err := server.SignIn(AuthEmail, AuthPassword)
-// 	if err != nil {
-// 		log.Fatalf("cannot login: %v\n", err)
-// 	}
-// 	tokenString := fmt.Sprintf("Bearer %v", token)
+	fmt.Println("this is the token: ", tokenString)
 
-// 	userSample := []struct {
-// 		id           string
-// 		tokenGiven   string
-// 		statusCode   int
-// 		errorMessage string
-// 	}{
-// 		{
-// 			// Convert int32 to int first before converting to string
-// 			id:           strconv.Itoa(int(AuthID)),
-// 			tokenGiven:   tokenString,
-// 			statusCode:   204,
-// 			errorMessage: "",
-// 		},
-// 		{
-// 			// When no token is given
-// 			id:           strconv.Itoa(int(AuthID)),
-// 			tokenGiven:   "",
-// 			statusCode:   401,
-// 			errorMessage: "Unauthorized",
-// 		},
-// 		{
-// 			// When incorrect token is given
-// 			id:           strconv.Itoa(int(AuthID)),
-// 			tokenGiven:   "This is an incorrect token",
-// 			statusCode:   401,
-// 			errorMessage: "Unauthorized",
-// 		},
-// 		{
-// 			id:         "unknwon",
-// 			tokenGiven: tokenString,
-// 			statusCode: 400,
-// 		},
-// 		{
-// 			// User 2 trying to use User 1 token
-// 			id:           strconv.Itoa(int(2)),
-// 			tokenGiven:   tokenString,
-// 			statusCode:   401,
-// 			errorMessage: "Unauthorized",
-// 		},
-// 	}
+	userSample := []struct {
+		id         string
+		tokenGiven string
+		statusCode int
+	}{
+		{
+			// Convert int32 to int first before converting to string
+			id:         strconv.Itoa(int(user.ID)),
+			tokenGiven: tokenString,
+			statusCode: 200,
+		},
+		{
+			// When no token is given
+			id:         strconv.Itoa(int(user.ID)),
+			tokenGiven: "",
+			statusCode: 401,
+		},
+		{
+			// When incorrect token is given
+			id:         strconv.Itoa(int(user.ID)),
+			tokenGiven: "This is an incorrect token",
+			statusCode: 401,
+		},
+		{
+			// When bad request data is given:
+			id:         "unknwon",
+			tokenGiven: tokenString,
+			statusCode: 400,
+		},
+	}
+	for _, v := range userSample {
+		req, _ := http.NewRequest("GET", "/users/"+v.id, nil)
+		req.Header.Set("Authorization", v.tokenGiven)
+		rr := httptest.NewRecorder()
+		r := gin.Default()
+		r.GET("/users/:id", server.DeleteUser)
+		r.ServeHTTP(rr, req)
 
-// 	for _, v := range userSample {
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			fmt.Printf("Cannot convert to json: %v", err)
+		}
+		assert.Equal(t, rr.Code, v.statusCode)
 
-// 		req, err := http.NewRequest("GET", "/users", nil)
-// 		if err != nil {
-// 			t.Errorf("This is the error: %v\n", err)
-// 		}
-// 		req = mux.SetURLVars(req, map[string]string{"id": v.id})
-// 		rr := httptest.NewRecorder()
-// 		handler := http.HandlerFunc(server.DeleteUser)
+		if v.statusCode == 200 {
+			assert.Equal(t, responseInterface["response"], "User Deleted")
+		}
 
-// 		req.Header.Set("Authorization", v.tokenGiven)
+		if v.statusCode == 400 || v.statusCode == 401 {
+			responseMap := responseInterface["error"].(map[string]interface{})
 
-// 		handler.ServeHTTP(rr, req)
-// 		assert.Equal(t, rr.Code, v.statusCode)
-
-// 		if v.statusCode == 401 && v.errorMessage != "" {
-// 			responseMap := make(map[string]interface{})
-// 			err = json.Unmarshal([]byte(rr.Body.String()), &responseMap)
-// 			if err != nil {
-// 				t.Errorf("Cannot convert to json: %v", err)
-// 			}
-// 			assert.Equal(t, responseMap["error"], v.errorMessage)
-// 		}
-// 	}
-// }
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
+			}
+			if responseMap["Unauthorized"] != nil {
+				assert.Equal(t, responseMap["Unauthorized"], "Unauthorized")
+			}
+		}
+	}
+}
