@@ -52,7 +52,6 @@ func (server *Server) CreateUser(c *gin.Context) {
 		})
 		return
 	}
-
 	user.Prepare()
 	errorMessages := user.Validate("")
 	if len(errorMessages) > 0 {
@@ -390,7 +389,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 
 	//When current password has content.
 	if requestBody["current_password"] == "" && requestBody["new_password"] != "" {
-		errList["Empty_Current"] = "Please Provide current password"
+		errList["Empty_current"] = "Please Provide current password"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
@@ -398,7 +397,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		return
 	}
 	if requestBody["current_password"] != "" && requestBody["new_password"] == "" {
-		errList["Empty_New"] = "Please Provide new password"
+		errList["Empty_new"] = "Please Provide new password"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
@@ -426,11 +425,13 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			return
 		}
 		//update both the password and the email
+		newUser.Username = formerUser.Username //remember, you cannot update the username
 		newUser.Email = requestBody["email"]
 		newUser.Password = requestBody["new_password"]
 	}
 
 	//The password fields not entered, so update only the email
+	newUser.Username = formerUser.Username
 	newUser.Email = requestBody["email"]
 
 	newUser.Prepare()
@@ -446,11 +447,10 @@ func (server *Server) UpdateUser(c *gin.Context) {
 
 	updatedUser, err := newUser.UpdateAUser(server.DB, uint32(uid))
 	if err != nil {
-		formattedError := formaterror.FormatError(err.Error())
-		errList = formattedError
+		errList := formaterror.FormatError(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": http.StatusInternalServerError,
-			"error":  err.Error(),
+			"error":  errList,
 		})
 		return
 	}

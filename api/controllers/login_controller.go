@@ -62,8 +62,6 @@ func (server *Server) Login(c *gin.Context) {
 
 func (server *Server) SignIn(email, password string) (map[string]interface{}, error) {
 
-	fmt.Println("We entered the sign in")
-
 	var err error
 
 	userData := make(map[string]interface{})

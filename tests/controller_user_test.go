@@ -212,181 +212,223 @@ func TestGetUserByID(t *testing.T) {
 	}
 }
 
-//func TestUpdateUser(t *testing.T) {
-//
-//	// Switch to test mode so you don't get such noisy output
-//	gin.SetMode(gin.TestMode)
-//
-//	var AuthEmail, AuthPassword string
-//	var AuthID uint32
-//
-//	err := refreshUserTable()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	users, err := seedUsers() //we need atleast two users to properly check the update
-//	if err != nil {
-//		log.Fatalf("Error seeding user: %v\n", err)
-//	}
-//	// Get only the first user
-//	for _, user := range users {
-//		if user.ID == 2 {
-//			continue
-//		}
-//		AuthID = user.ID
-//		AuthEmail = user.Email
-//		AuthPassword = "password" //Note the password in the database is already hashed, we want unhashed
-//	}
-//	//Login the user and get the authentication token
-//	token, err := server.SignIn(AuthEmail, AuthPassword)
-//	if err != nil {
-//		log.Fatalf("cannot login: %v\n", err)
-//	}
-//	tokenString := fmt.Sprintf("Bearer %v", token)
-//
-//	samples := []struct {
-//		id             string
-//		updateJSON     string
-//		statusCode     int
-//		updateUsername string
-//		updateEmail    string
-//		tokenGiven     string
-//		errorMessage   string
-//	}{
-//		{
-//			// Convert int32 to int first before converting to string
-//			id:             strconv.Itoa(int(AuthID)),
-//			updateJSON:     `{"username":"Grand", "email": "grand@gmail.com", "password": "password"}`,
-//			statusCode:     200,
-//			updateUsername: "Grand",
-//			updateEmail:    "grand@gmail.com",
-//			tokenGiven:     tokenString,
-//			errorMessage:   "",
-//		},
-//		{
-//			// When password field is empty
-//			id:           strconv.Itoa(int(AuthID)),
-//			updateJSON:   `{"username":"Woman", "email": "woman@gmail.com", "password": ""}`,
-//			statusCode:   422,
-//			tokenGiven:   tokenString,
-//			errorMessage: "Required Password",
-//		},
-//		// {
-//		// 	// When no token was passed
-//		// 	id:           strconv.Itoa(int(AuthID)),
-//		// 	updateJSON:   `{"username":"Man", "email": "man@gmail.com", "password": "password"}`,
-//		// 	statusCode:   401,
-//		// 	tokenGiven:   "",
-//		// 	errorMessage: "Unauthorized",
-//		// },
-//		// {
-//		// 	// When incorrect token was passed
-//		// 	id:           strconv.Itoa(int(AuthID)),
-//		// 	updateJSON:   `{"username":"Woman", "email": "woman@gmail.com", "password": "password"}`,
-//		// 	statusCode:   401,
-//		// 	tokenGiven:   "This is incorrect token",
-//		// 	errorMessage: "Unauthorized",
-//		// },
-//		// {
-//		// 	// Remember "kenny@gmail.com" belongs to user 2
-//		// 	id:           strconv.Itoa(int(AuthID)),
-//		// 	updateJSON:   `{"username":"Frank", "email": "kenny@gmail.com", "password": "password"}`,
-//		// 	statusCode:   500,
-//		// 	tokenGiven:   tokenString,
-//		// 	errorMessage: "Email Already Taken",
-//		// },
-//		// {
-//		// 	// Remember "Kenny Morris" belongs to user 2
-//		// 	id:           strconv.Itoa(int(AuthID)),
-//		// 	updateJSON:   `{"username":"Kenny Morris", "email": "grand@gmail.com", "password": "password"}`,
-//		// 	statusCode:   500,
-//		// 	tokenGiven:   tokenString,
-//		// 	errorMessage: "Username Already Taken",
-//		// },
-//		// {
-//		// 	id:           strconv.Itoa(int(AuthID)),
-//		// 	updateJSON:   `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
-//		// 	statusCode:   422,
-//		// 	tokenGiven:   tokenString,
-//		// 	errorMessage: "Invalid Email",
-//		// },
-//		// {
-//		// 	id:           strconv.Itoa(int(AuthID)),
-//		// 	updateJSON:   `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
-//		// 	statusCode:   422,
-//		// 	tokenGiven:   tokenString,
-//		// 	errorMessage: "Required Username",
-//		// },
-//		// {
-//		// 	id:           strconv.Itoa(int(AuthID)),
-//		// 	updateJSON:   `{"username": "Kan", "email": "", "password": "password"}`,
-//		// 	statusCode:   422,
-//		// 	tokenGiven:   tokenString,
-//		// 	errorMessage: "Required Email",
-//		// },
-//		// {
-//		// 	id:         "unknwon",
-//		// 	tokenGiven: tokenString,
-//		// 	statusCode: 400,
-//		// },
-//		// {
-//		// 	// When user 2 is using user 1 token
-//		// 	id:           strconv.Itoa(int(2)),
-//		// 	updateJSON:   `{"username": "Mike", "email": "mike@gmail.com", "password": "password"}`,
-//		// 	tokenGiven:   tokenString,
-//		// 	statusCode:   401,
-//		// 	errorMessage: "Unauthorized",
-//		// },
-//	}
-//
-//	for _, v := range samples {
-//		req, err := http.NewRequest("GET", "/users/"+v.id, bytes.NewBufferString(v.updateJSON))
-//		if err != nil {
-//			t.Errorf("This is the error: %v\n", err)
-//		}
-//		rr := httptest.NewRecorder()
-//
-//		r := gin.Default()
-//		r.GET("/users/:id", server.UpdateUser)
-//		req.Header.Set("Authorization", v.tokenGiven)
-//		r.ServeHTTP(rr, req)
-//
-//		// fmt.Printf("This si the json: %v\n", rr.Body.String())
-//
-//		payload := make(map[string]interface{})
-//		err = json.Unmarshal([]byte(rr.Body.String()), &payload)
-//		if err != nil {
-//			t.Errorf("Cannot convert to json: %v\n", err)
-//		}
-//
-//		assert.Equal(t, rr.Code, v.statusCode)
-//
-//		theUser := payload["response"] // Get the response from the payload
-//		if theUser != nil {
-//			userData, _ := theUser.(map[string]interface{}) //converting theUser to a mp from a interface
-//			assert.Equal(t, userData["username"], v.updateUsername)
-//			assert.Equal(t, userData["email"], v.updateEmail)
-//		}
-//
-//		theError := payload["error"] // Get the error from the payload
-//		if theError != nil {
-//			errorData, _ := theError.(map[string]interface{}) //converting theUser to a mp from a interface
-//			if errorData["required_password"] != nil {
-//				assert.Equal(t, v.errorMessage, errorData["required_password"])
-//			}
-//			if errorData["unauthorized"] != nil {
-//				assert.Equal(t, v.errorMessage, errorData["unauthorized"])
-//			}
-//			// fmt.Printf("this is the error: %v", errorData)
-//			// errorString := fmt.Sprintf("%v", theError) //Convert the interface to string
-//			// replacer := strings.NewReplacer("[", "", "]", "") //remove square brackets
-//			// errorString = replacer.Replace(errorString)
-//
-//			// fmt.Printf("this is the error: %v", theError)
-//			// assert.Equal(t, errorString, v.errorMessage)
-//		}
-//	}
-//}
+func TestUpdateUser(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	var AuthEmail, AuthPassword, AuthUsername string
+	var AuthID uint32
+
+	err := refreshUserTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	users, err := seedUsers() //we need atleast two users to properly check the update
+	if err != nil {
+		log.Fatalf("Error seeding user: %v\n", err)
+	}
+	// Get only the first user
+	for _, user := range users {
+		if user.ID == 2 {
+			continue
+		}
+		AuthID = user.ID
+		AuthEmail = user.Email
+		AuthUsername = user.Username
+		AuthPassword = "password" //Note the password in the database is already hashed, we want unhashed
+	}
+	//Login the user and get the authentication token
+	tokenInterface, err := server.SignIn(AuthEmail, AuthPassword)
+	if err != nil {
+		log.Fatalf("cannot login: %v\n", err)
+	}
+	token := tokenInterface["token"] //get only the token
+	tokenString := fmt.Sprintf("Bearer %v", token)
+
+	samples := []struct {
+		id          string
+		updateJSON  string
+		statusCode  int
+		username    string
+		updateEmail string
+		tokenGiven  string
+	}{
+		{
+			// In this particular test case, we changed the user's password to "newpassword". Very important to note
+			// Convert int32 to int first before converting to string
+			id:          strconv.Itoa(int(AuthID)),
+			updateJSON:  `{"email": "grand@gmail.com", "current_password": "password", "new_password": "newpassword"}`,
+			statusCode:  200,
+			username:    AuthUsername, //the username does not change, even if a new name is provided, it will be ignored
+			updateEmail: "grand@gmail.com",
+			tokenGiven:  tokenString,
+		},
+		{
+			// An attempt to change the username, will not work, the old name is still retained.
+			// Remember, the "current_password" is now "newpassword", changed in test 1
+			id:          strconv.Itoa(int(AuthID)),
+			updateJSON:  `{"username": "new_name", "email": "grand@gmail.com", "current_password": "newpassword", "new_password": "newpassword"}`,
+			statusCode:  200,
+			username:    AuthUsername, //irrespective of the username inputed above, the old one is still used
+			updateEmail: "grand@gmail.com",
+			tokenGiven:  tokenString,
+		},
+		{
+			// The user can update only his email address
+			id:          strconv.Itoa(int(AuthID)),
+			updateJSON:  `{"email": "fred@gmail.com"}`,
+			statusCode:  200,
+			username:    AuthUsername,
+			updateEmail: "fred@gmail.com",
+			tokenGiven:  tokenString,
+		},
+		{
+			id:          strconv.Itoa(int(AuthID)),
+			updateJSON:  `{"email": "alex@gmail.com", "current_password": "", "new_password": ""}`,
+			statusCode:  200,
+			username:    AuthUsername,
+			updateEmail: "alex@gmail.com",
+			tokenGiven:  tokenString,
+		},
+		{
+			// When password the "current_password" is given and does not match with the one in the database
+			id:          strconv.Itoa(int(AuthID)),
+			updateJSON:  `{"email": "alex@gmail.com", "current_password": "wrongpassword", "new_password": "password"}`,
+			statusCode:  422,
+			username:    AuthUsername,
+			updateEmail: "alex@gmail.com",
+			tokenGiven:  tokenString,
+		},
+		{
+			// When password the "current_password" is correct but the "new_password" field is not given
+			id:          strconv.Itoa(int(AuthID)),
+			updateJSON:  `{"email": "alex@gmail.com", "current_password": "newpassword", "new_password": ""}`,
+			statusCode:  422,
+			username:    AuthUsername,
+			updateEmail: "alex@gmail.com",
+			tokenGiven:  tokenString,
+		},
+		{
+			// When password the "current_password" is correct but the "new_password" field is not up to 6 characters
+			id:          strconv.Itoa(int(AuthID)),
+			updateJSON:  `{"email": "alex@gmail.com", "current_password": "newpassword", "new_password": "pass"}`,
+			statusCode:  422,
+			username:    AuthUsername,
+			updateEmail: "alex@gmail.com",
+			tokenGiven:  tokenString,
+		},
+		{
+			// When no token was passed (when the user is not authenticated)
+			id:         strconv.Itoa(int(AuthID)),
+			updateJSON: `{"email": "man@gmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			statusCode: 401,
+			tokenGiven: "",
+		},
+		{
+			// When incorrect token was passed
+			id:         strconv.Itoa(int(AuthID)),
+			updateJSON: `{"email": "man@gmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			statusCode: 401,
+			tokenGiven: "This is incorrect token",
+		},
+		{
+			// Remember "kenny@gmail.com" belongs to user 2, so, user 1 cannot use some else email that is in our database
+			id:         strconv.Itoa(int(AuthID)),
+			updateJSON: `{"email": "kenny@gmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			username:   AuthUsername,
+			statusCode: 500,
+			tokenGiven: tokenString,
+		},
+		{
+			// When the email provided is invalid
+			id:         strconv.Itoa(int(AuthID)),
+			updateJSON: `{"email": "notgmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			username:   AuthUsername,
+			statusCode: 422,
+			tokenGiven: tokenString,
+		},
+		{
+			// If the email field is empty
+			id:         strconv.Itoa(int(AuthID)),
+			updateJSON: `{"email": "", "current_password": "newpassword", "new_password": "password"}`,
+			username:   AuthUsername,
+			statusCode: 422,
+			tokenGiven: tokenString,
+		},
+		{
+			// when invalid is provided
+			id:         "unknwon",
+			tokenGiven: tokenString,
+			statusCode: 400,
+		},
+	}
+
+	for _, v := range samples {
+
+		gin.SetMode(gin.TestMode)
+
+		r := gin.Default()
+
+		r.POST("/users/:id", server.UpdateUser)
+		req, err := http.NewRequest(http.MethodPost, "/users/"+v.id, bytes.NewBufferString(v.updateJSON))
+		req.Header.Set("Authorization", v.tokenGiven)
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			t.Errorf("Cannot convert to json: %v", err)
+		}
+
+		assert.Equal(t, rr.Code, v.statusCode)
+
+		if v.statusCode == 200 {
+			//casting the interface to map:
+			responseMap := responseInterface["response"].(map[string]interface{})
+			assert.Equal(t, responseMap["email"], v.updateEmail)
+			assert.Equal(t, responseMap["username"], v.username)
+		}
+
+		if v.statusCode == 401 || v.statusCode == 422 || v.statusCode == 500 {
+			responseMap := responseInterface["error"].(map[string]interface{})
+
+			fmt.Println("this is the response error: ", responseMap)
+
+			if responseMap["Password_mismatch"] != nil {
+				assert.Equal(t, responseMap["Password_mismatch"], "The password not correct")
+			}
+			if responseMap["Empty_new"] != nil {
+				assert.Equal(t, responseMap["Empty_new"], "Please Provide new password")
+			}
+			if responseMap["Empty_current"] != nil {
+				assert.Equal(t, responseMap["Empty_current"], "Please Provide current password")
+			}
+			if responseMap["Invalid_password"] != nil {
+				assert.Equal(t, responseMap["Invalid_password"], "Password should be atleast 6 characters")
+			}
+			if responseMap["Unauthorized"] != nil {
+				assert.Equal(t, responseMap["Unauthorized"], "Unauthorized")
+			}
+			if responseMap["Taken_email"] != nil {
+				assert.Equal(t, responseMap["Taken_email"], "Email Already Taken")
+			}
+			if responseMap["Invalid_email"] != nil {
+				assert.Equal(t, responseMap["Invalid_email"], "Invalid Email")
+			}
+			if responseMap["Required_email"] != nil {
+				assert.Equal(t, responseMap["Required_email"], "Required Email")
+			}
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
+			}
+		}
+	}
+}
 
 // func TestDeleteUser(t *testing.T) {
 
