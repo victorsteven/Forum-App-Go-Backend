@@ -50,7 +50,7 @@ func (server *Server) CreatePost(c *gin.Context) {
 
 	// check if the user exist:
 	user := models.User{}
-	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", uid).Take(&user).Error
+	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&user).Error
 	if err != nil {
 		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{

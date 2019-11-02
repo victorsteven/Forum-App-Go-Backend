@@ -128,11 +128,6 @@ func refreshUserAndPostTable() error {
 
 func seedOneUserAndOnePost() (models.Post, error) {
 
-	// err := refreshUserAndPostTable()
-	// if err != nil {
-	// 	return models.Post{}, err
-	// }
-
 	user := models.User{
 		Username: "Sam",
 		Email:    "sam@gmail.com",
@@ -197,4 +192,49 @@ func seedUsersAndPosts() ([]models.User, []models.Post, error) {
 		}
 	}
 	return users, posts, nil
+}
+
+func refreshUserPostAndLikeTable() error {
+	err := server.DB.DropTableIfExists(&models.User{}, &models.Post{}, &models.Like{}).Error
+	if err != nil {
+		return err
+	}
+	err = server.DB.AutoMigrate(&models.User{}, &models.Post{}, &models.Like{}).Error
+	if err != nil {
+		return err
+	}
+	log.Printf("Successfully refreshed user, post and like tables")
+	return nil
+}
+
+func seedOneUserOnePostAndOneLike() (models.Like, error) {
+	user := models.User{
+		Username: "Abdul",
+		Email:    "abdul@gmail.com",
+		Password: "password",
+	}
+	err := server.DB.Model(&models.User{}).Create(&user).Error
+	if err != nil {
+		return models.Like{}, err
+	}
+
+	post := models.Post{
+		Title:    "This is the title abdul",
+		Content:  "This is the content abdul",
+		AuthorID: user.ID,
+	}
+	err = server.DB.Model(&models.Post{}).Create(&post).Error
+	if err != nil {
+		return models.Like{}, err
+	}
+
+	like := models.Like{
+		UserID: user.ID,
+		PostID: post.ID,
+	}
+	err = server.DB.Model(&models.Like{}).Create(&like).Error
+	if err != nil {
+		return models.Like{}, err
+	}
+	return like, nil
 }

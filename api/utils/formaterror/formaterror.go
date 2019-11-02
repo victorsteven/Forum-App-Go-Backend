@@ -35,6 +35,11 @@ func FormatError(errString string) map[string]string {
 		errorMessages["No_record"] = err.Error()
 	}
 
+	if strings.Contains(errString, "double like") {
+		// err = errors.New("You cannot like this post twice")
+		errorMessages["Double_like"] = "You cannot like this post twice"
+	}
+
 	if len(errorMessages) > 0 {
 		return errorMessages
 	}
