@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
-	"io/ioutil"
-	"net/http"
-	"strconv"
 )
 
 func (server *Server) CreatePost(c *gin.Context) {
@@ -36,16 +37,6 @@ func (server *Server) CreatePost(c *gin.Context) {
 		})
 		return
 	}
-	post.Prepare()
-	errorMessages := post.Validate()
-	if len(errorMessages) > 0 {
-		errList = errorMessages
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
 	uid, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
 		errList["Unauthorized"] = "Unauthorized"
@@ -56,7 +47,10 @@ func (server *Server) CreatePost(c *gin.Context) {
 		return
 	}
 
-	if uid != post.AuthorID {
+	// check if the user exist:
+	user := models.User{}
+	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", uid).Take(&user).Error
+	if err != nil {
 		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": http.StatusUnauthorized,
@@ -65,10 +59,22 @@ func (server *Server) CreatePost(c *gin.Context) {
 		return
 	}
 
+	post.AuthorID = uid //the authenticated user is the one creating the post
+
+	post.Prepare()
+	errorMessages := post.Validate()
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+
 	postCreated, err := post.SavePost(server.DB)
 	if err != nil {
-		formattedError := formaterror.FormatError(err.Error())
-		errList = formattedError
+		errList := formaterror.FormatError(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": http.StatusInternalServerError,
 			"error":  errList,
@@ -304,8 +310,8 @@ func (server *Server) DeletePost(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusOK,
-		"response":  "post deleted",
+		"status":   http.StatusOK,
+		"response": "post deleted",
 	})
 }
 

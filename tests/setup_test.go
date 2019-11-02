@@ -71,11 +71,6 @@ func refreshUserTable() error {
 
 func seedOneUser() (models.User, error) {
 
-	// err := refreshUserTable()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	user := models.User{
 		Username: "Pet",
 		Email:    "pet@gmail.com",
@@ -133,16 +128,17 @@ func refreshUserAndPostTable() error {
 
 func seedOneUserAndOnePost() (models.Post, error) {
 
-	err := refreshUserAndPostTable()
-	if err != nil {
-		return models.Post{}, err
-	}
+	// err := refreshUserAndPostTable()
+	// if err != nil {
+	// 	return models.Post{}, err
+	// }
+
 	user := models.User{
 		Username: "Sam",
 		Email:    "sam@gmail.com",
 		Password: "password",
 	}
-	err = server.DB.Model(&models.User{}).Create(&user).Error
+	err := server.DB.Model(&models.User{}).Create(&user).Error
 	if err != nil {
 		return models.Post{}, err
 	}

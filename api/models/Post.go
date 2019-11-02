@@ -10,11 +10,11 @@ import (
 )
 
 type Post struct {
-	ID        uint64    `gorm:"primary_key;auto_increment" json:"id"`
-	Title     string    `gorm:"size:255;not null;unique" json:"title"`
-	Content   string    `gorm:"size:500;not null;" json:"content"`
-	Author    User      `json:"author"`
-	AuthorID  uint32    `gorm:"not null" json:"author_id"`
+	ID       uint64 `gorm:"primary_key;auto_increment" json:"id"`
+	Title    string `gorm:"size:255;not null;unique" json:"title"`
+	Content  string `gorm:"size:500;not null;" json:"content"`
+	Author   User   `json:"author"`
+	AuthorID uint32 `gorm:"not null" json:"author_id"`
 	//Likes []Like        `gorm:"foreignkey:PostID" json:"likes"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
@@ -144,7 +144,3 @@ func (p *Post) FindUserPosts(db *gorm.DB, uid uint32) (*[]Post, error) {
 	}
 	return &posts, nil
 }
-
-
-
-
