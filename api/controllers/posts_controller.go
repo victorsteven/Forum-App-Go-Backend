@@ -130,8 +130,8 @@ func (server *Server) GetPost(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"status":   http.StatusCreated,
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
 		"response": postReceived,
 	})
 }

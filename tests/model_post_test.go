@@ -55,7 +55,7 @@ func TestSavePost(t *testing.T) {
 	assert.Equal(t, newPost.AuthorID, savedPost.AuthorID)
 }
 
-func TestGetPostByID(t *testing.T) {
+func TestFindPostByID(t *testing.T) {
 
 	err := refreshUserAndPostTable()
 	if err != nil {

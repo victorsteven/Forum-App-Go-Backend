@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -159,88 +160,74 @@ func TestGetPosts(t *testing.T) {
 	assert.Equal(t, len(thePosts), 2)
 }
 
-// func TestGetPosts(t *testing.T) {
+func TestGetPostByID(t *testing.T) {
 
-// 	err := refreshUserAndPostTable()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	_, _, err = seedUsersAndPosts()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
+	gin.SetMode(gin.TestMode)
 
-// 	req, err := http.NewRequest("GET", "/posts", nil)
-// 	if err != nil {
-// 		t.Errorf("this is the error: %v\n", err)
-// 	}
-// 	rr := httptest.NewRecorder()
-// 	handler := http.HandlerFunc(server.GetPosts)
-// 	handler.ServeHTTP(rr, req)
+	err := refreshUserAndPostTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	post, err := seedOneUserAndOnePost()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// 	var posts []models.Post
-// 	err = json.Unmarshal([]byte(rr.Body.String()), &posts)
+	postSample := []struct {
+		id         string
+		statusCode int
+		title      string
+		content    string
+		author_id  uint32
+	}{
+		{
+			id:         strconv.Itoa(int(post.ID)),
+			statusCode: 200,
+			title:      post.Title,
+			content:    post.Content,
+			author_id:  post.AuthorID,
+		},
+		{
+			id:         "unknwon",
+			statusCode: 400,
+		},
+		{
+			id:         strconv.Itoa(12322), //an id that does not exist
+			statusCode: 404,
+		},
+	}
+	for _, v := range postSample {
+		req, _ := http.NewRequest("GET", "/posts/"+v.id, nil)
+		rr := httptest.NewRecorder()
 
-// 	assert.Equal(t, rr.Code, http.StatusOK)
-// 	assert.Equal(t, len(posts), 2)
-// }
+		r := gin.Default()
+		r.GET("/posts/:id", server.GetPost)
+		r.ServeHTTP(rr, req)
 
-// func TestFindPostByID(t *testing.T) {
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			fmt.Printf("Cannot convert to json: %v", err)
+		}
+		assert.Equal(t, rr.Code, v.statusCode)
+		if v.statusCode == 200 {
+			responseMap := responseInterface["response"].(map[string]interface{})
+			assert.Equal(t, responseMap["title"], v.title)
+			assert.Equal(t, responseMap["content"], v.content)
+			assert.Equal(t, responseMap["author_id"], float64(v.author_id))
+		}
+		if v.statusCode == 400 || v.statusCode == 404 {
+			responseMap := responseInterface["error"].(map[string]interface{})
 
-// 	err := refreshUserAndPostTable()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	post, err := seedOneUserAndOnePost()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	postSample := []struct {
-// 		id           string
-// 		statusCode   int
-// 		title        string
-// 		content      string
-// 		author_id    uint32
-// 		errorMessage string
-// 	}{
-// 		{
-// 			id:         strconv.Itoa(int(post.ID)),
-// 			statusCode: 200,
-// 			title:      post.Title,
-// 			content:    post.Content,
-// 			author_id:  post.AuthorID,
-// 		},
-// 		{
-// 			id:         "unknwon",
-// 			statusCode: 400,
-// 		},
-// 	}
-// 	for _, v := range postSample {
-
-// 		req, err := http.NewRequest("GET", "/posts", nil)
-// 		if err != nil {
-// 			t.Errorf("this is the error: %v\n", err)
-// 		}
-// 		req = mux.SetURLVars(req, map[string]string{"id": v.id})
-
-// 		rr := httptest.NewRecorder()
-// 		handler := http.HandlerFunc(server.GetPost)
-// 		handler.ServeHTTP(rr, req)
-
-// 		responseMap := make(map[string]interface{})
-// 		err = json.Unmarshal([]byte(rr.Body.String()), &responseMap)
-// 		if err != nil {
-// 			log.Fatalf("Cannot convert to json: %v", err)
-// 		}
-// 		assert.Equal(t, rr.Code, v.statusCode)
-
-// 		if v.statusCode == 200 {
-// 			assert.Equal(t, post.Title, responseMap["title"])
-// 			assert.Equal(t, post.Content, responseMap["content"])
-// 			assert.Equal(t, float64(post.AuthorID), responseMap["author_id"]) //the response author id is float64
-// 		}
-// 	}
-// }
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
+			}
+			if responseMap["No_post"] != nil {
+				assert.Equal(t, responseMap["No_post"], "No Post Found")
+			}
+		}
+	}
+}
 
 // func TestUpdatePost(t *testing.T) {
 
