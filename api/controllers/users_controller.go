@@ -4,21 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
-	"github.com/victorsteven/fullstack/api/security"
-	"golang.org/x/crypto/bcrypt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
 	"strings"
 
-	//"github.com/victorsteven/fullstack/api/security"
-	"github.com/victorsteven/fullstack/api/utils/fileformat"
-	//"golang.org/x/crypto/bcrypt"
-	"log"
-	"os"
-
-	//"github.com/aws/aws-sdk-go/aws/awsutil"
-	"io/ioutil"
-	"net/http"
-	"strconv"
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -27,12 +21,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
+	"github.com/victorsteven/fullstack/api/security"
+	"github.com/victorsteven/fullstack/api/utils/fileformat"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 )
-
-func (server *Server) authUser(c *gin.Context) {
-
-}
 
 func (server *Server) CreateUser(c *gin.Context) {
 
@@ -87,10 +79,10 @@ func (server *Server) CreateUser(c *gin.Context) {
 	})
 
 	//Send welcome mail to the user:
-	//err = mailer.SendMail(userCreated)
-	//if err != nil {
-	//	fmt.Printf("this is the sending mail error: %s\n", err)
-	//}
+	// err = mailer.SendMail(userCreated)
+	// if err != nil {
+	// 	fmt.Printf("this is the sending mail error: %s\n", err)
+	// }
 }
 
 func (server *Server) GetUsers(c *gin.Context) {
@@ -413,7 +405,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-	if requestBody["current_password"] != "" && requestBody["new_password"] != ""  {
+	if requestBody["current_password"] != "" && requestBody["new_password"] != "" {
 		//Also check if the new password
 		if len(requestBody["new_password"]) < 6 {
 			errList["Invalid_password"] = "Password should be atleast 6 characters"
@@ -470,7 +462,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 
 /*
 * This to shut down a users account, u can uncomment and try it, also uncomment the model method in User.go
-*/
+ */
 //func (server *Server) DeleteUser(c *gin.Context) {
 //
 //	//clear previous error if any

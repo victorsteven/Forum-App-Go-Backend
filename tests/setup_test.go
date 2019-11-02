@@ -71,10 +71,10 @@ func refreshUserTable() error {
 
 func seedOneUser() (models.User, error) {
 
-	err := refreshUserTable()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := refreshUserTable()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	user := models.User{
 		Username: "Pet",
@@ -82,7 +82,7 @@ func seedOneUser() (models.User, error) {
 		Password: "password",
 	}
 
-	err = server.DB.Model(&models.User{}).Create(&user).Error
+	err := server.DB.Model(&models.User{}).Create(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}

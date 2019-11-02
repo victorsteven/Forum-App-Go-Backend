@@ -29,8 +29,12 @@ func FormatError(errString string) map[string]string {
 	if strings.Contains(errString, "hashedPassword") {
 		err = errors.New("Incorrect Password")
 		errorMessages["Incorrect_password"] = err.Error()
-
 	}
+	if strings.Contains(errString, "record not found") {
+		err = errors.New("No Record Found")
+		errorMessages["No_record"] = err.Error()
+	}
+
 	if len(errorMessages) > 0 {
 		return errorMessages
 	}

@@ -1,15 +1,16 @@
 package tests
 
 import (
-	"github.com/gin-gonic/gin"
-	"log"
-	"strconv"
-	"testing"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"testing"
+
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,40 +23,40 @@ func TestCreateUser(t *testing.T) {
 		log.Fatal(err)
 	}
 	samples := []struct {
-		inputJSON    string
-		statusCode   int
-		username     string
-		email        string
+		inputJSON  string
+		statusCode int
+		username   string
+		email      string
 	}{
 		{
-			inputJSON:    `{"username":"Pet", "email": "pet@gmail.com", "password": "password"}`,
-			statusCode:   201,
-			username:     "Pet",
-			email:        "pet@gmail.com",
+			inputJSON:  `{"username":"Pet", "email": "pet@gmail.com", "password": "password"}`,
+			statusCode: 201,
+			username:   "Pet",
+			email:      "pet@gmail.com",
 		},
 		{
-			inputJSON:    `{"username":"Frank", "email": "pet@gmail.com", "password": "password"}`,
-			statusCode:   500,
+			inputJSON:  `{"username":"Frank", "email": "pet@gmail.com", "password": "password"}`,
+			statusCode: 500,
 		},
 		{
-			inputJSON:    `{"username":"Pet", "email": "grand@gmail.com", "password": "password"}`,
-			statusCode:   500,
+			inputJSON:  `{"username":"Pet", "email": "grand@gmail.com", "password": "password"}`,
+			statusCode: 500,
 		},
 		{
-			inputJSON:    `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
-			statusCode:   422,
+			inputJSON:  `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
+			statusCode: 422,
 		},
 		{
-			inputJSON:    `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
-			statusCode:   422,
+			inputJSON:  `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
+			statusCode: 422,
 		},
 		{
-			inputJSON:    `{"username": "Kan", "email": "", "password": "password"}`,
-			statusCode:   422,
+			inputJSON:  `{"username": "Kan", "email": "", "password": "password"}`,
+			statusCode: 422,
 		},
 		{
-			inputJSON:    `{"username": "Kan", "email": "kan@gmail.com", "password": ""}`,
-			statusCode:   422,
+			inputJSON:  `{"username": "Kan", "email": "kan@gmail.com", "password": ""}`,
+			statusCode: 422,
 		},
 	}
 
@@ -83,7 +84,7 @@ func TestCreateUser(t *testing.T) {
 			assert.Equal(t, responseMap["username"], v.username)
 			assert.Equal(t, responseMap["email"], v.email)
 		}
-		if v.statusCode == 422 || v.statusCode == 500  {
+		if v.statusCode == 422 || v.statusCode == 500 {
 			responseMap := responseInterface["error"].(map[string]interface{})
 
 			if responseMap["Taken_email"] != nil {
@@ -110,7 +111,6 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUsers(t *testing.T) {
 
-	// Switch to test mode so you don't get such noisy output
 	gin.SetMode(gin.TestMode)
 
 	err := refreshUserTable()
@@ -146,24 +146,21 @@ func TestGetUsers(t *testing.T) {
 
 func TestGetUserByID(t *testing.T) {
 
-	// Switch to test mode so you don't get such noisy output
 	gin.SetMode(gin.TestMode)
 
 	err := refreshUserTable()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	user, err := seedOneUser()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	userSample := []struct {
-		id           string
-		statusCode   int
-		username     string
-		email        string
+		id         string
+		statusCode int
+		username   string
+		email      string
 	}{
 		{
 			id:         strconv.Itoa(int(user.ID)),
@@ -172,12 +169,12 @@ func TestGetUserByID(t *testing.T) {
 			email:      user.Email,
 		},
 		{
-			id:           "unknwon",
-			statusCode:   400,
+			id:         "unknwon",
+			statusCode: 400,
 		},
 		{
-			id:           strconv.Itoa(12322), //an id that does not exist
-			statusCode:   404,
+			id:         strconv.Itoa(12322), //an id that does not exist
+			statusCode: 404,
 		},
 	}
 	for _, v := range userSample {
@@ -188,28 +185,28 @@ func TestGetUserByID(t *testing.T) {
 		r.GET("/users/:id", server.GetUser)
 		r.ServeHTTP(rr, req)
 
-		userMap := make(map[string]interface{})
-		err = json.Unmarshal([]byte(rr.Body.String()), &userMap)
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
 		if err != nil {
-			log.Fatalf("Cannot convert to json: %v", err)
+			fmt.Printf("Cannot convert to json: %v", err)
 		}
+
 		assert.Equal(t, rr.Code, v.statusCode)
 
 		if v.statusCode == 200 {
-			theUser := userMap["response"]                  	// Get the response from the payload
-			userData, _ := theUser.(map[string]interface{}) 	//converting theUser to a map from a interface
-			assert.Equal(t, user.Username, userData["username"])
-			assert.Equal(t, user.Email, userData["email"])
+			responseMap := responseInterface["response"].(map[string]interface{})
+			assert.Equal(t, responseMap["username"], v.username)
+			assert.Equal(t, responseMap["email"], v.email)
 		}
-		if v.statusCode == 400  || v.statusCode == 404{
-			theError := userMap["error"]                      	// Get the error from the payload
-			errorData, _ := theError.(map[string]interface{}) 	//converting theError to a map from a interface
 
-			if errorData["Invalid_request"] != nil {
-				assert.Equal(t, errorData["Invalid_request"], "Invalid Request")
+		if v.statusCode == 400 || v.statusCode == 404 {
+			responseMap := responseInterface["error"].(map[string]interface{})
+
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
 			}
-			if errorData["No_user"] != nil {
-				assert.Equal(t, errorData["No_user"], "No User Found")
+			if responseMap["No_user"] != nil {
+				assert.Equal(t, responseMap["No_user"], "No User Found")
 			}
 		}
 	}

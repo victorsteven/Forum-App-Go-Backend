@@ -2,14 +2,16 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/security"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
 	"golang.org/x/crypto/bcrypt"
-	"io/ioutil"
-	"net/http"
 )
 
 func (server *Server) Login(c *gin.Context) {
@@ -58,23 +60,9 @@ func (server *Server) Login(c *gin.Context) {
 	})
 }
 
-//func (server *Server) Logout(c *gin.Context) {
-//	session := sessions.Default(c)
-//	user := session.Get("token")
-//	if user == nil {
-//		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
-//		return
-//	}
-//	session.Delete("token")
-//	if err := session.Save(); err != nil {
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
-//		return
-//	}
-//	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
-//}
-
-
 func (server *Server) SignIn(email, password string) (map[string]interface{}, error) {
+
+	fmt.Println("We entered the sign in")
 
 	var err error
 
@@ -84,24 +72,24 @@ func (server *Server) SignIn(email, password string) (map[string]interface{}, er
 
 	err = server.DB.Debug().Model(models.User{}).Where("email = ?", email).Take(&user).Error
 	if err != nil {
+		fmt.Println("this is the error getting the user: ", err)
 		return nil, err
 	}
-
 	err = security.VerifyPassword(user.Password, password)
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+		fmt.Println("this is the error hashing the password: ", err)
 		return nil, err
 	}
 	token, err := auth.CreateToken(user.ID)
 	if err != nil {
+		fmt.Println("this is the error creating the token: ", err)
 		return nil, err
 	}
-
 	userData["token"] = token
-	userData["id"] =  user.ID
+	userData["id"] = user.ID
 	userData["email"] = user.Email
 	userData["avatar_path"] = user.AvatarPath
 	userData["username"] = user.Username
 
 	return userData, nil
 }
-
