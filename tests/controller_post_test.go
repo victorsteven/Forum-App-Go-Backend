@@ -124,6 +124,41 @@ func TestCreatePost(t *testing.T) {
 	}
 }
 
+func TestGetPosts(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	err := refreshUserAndPostTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, _, err = seedUsersAndPosts()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r := gin.Default()
+	r.GET("/posts", server.GetUsers)
+
+	req, err := http.NewRequest(http.MethodGet, "/posts", nil)
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	postsInterface := make(map[string]interface{})
+
+	err = json.Unmarshal([]byte(rr.Body.String()), &postsInterface)
+	if err != nil {
+		log.Fatalf("Cannot convert to json: %v\n", err)
+	}
+	// This is so that we can get the length of the users:
+	thePosts := postsInterface["response"].([]interface{})
+	assert.Equal(t, rr.Code, http.StatusOK)
+	assert.Equal(t, len(thePosts), 2)
+}
+
 // func TestGetPosts(t *testing.T) {
 
 // 	err := refreshUserAndPostTable()
@@ -149,6 +184,7 @@ func TestCreatePost(t *testing.T) {
 // 	assert.Equal(t, rr.Code, http.StatusOK)
 // 	assert.Equal(t, len(posts), 2)
 // }
+
 // func TestFindPostByID(t *testing.T) {
 
 // 	err := refreshUserAndPostTable()
