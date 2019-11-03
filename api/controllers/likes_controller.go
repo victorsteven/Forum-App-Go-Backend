@@ -95,6 +95,19 @@ func (server *Server) GetLikes(c *gin.Context) {
 		})
 		return
 	}
+
+	// Check if the post exist:
+	post := models.Post{}
+	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
+	if err != nil {
+		errList["No_post"] = "No Post Found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  errList,
+		})
+		return
+	}
+
 	like := models.Like{}
 
 	likes, err := like.GetLikesInfo(server.DB, pid)

@@ -151,8 +151,6 @@ func TestGetLikes(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	r := gin.Default()
-
 	err := refreshUserPostAndLikeTable()
 	if err != nil {
 		log.Fatal(err)
@@ -161,23 +159,58 @@ func TestGetLikes(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Cannot seed tables %v\n", err)
 	}
-	postIDString := strconv.Itoa(int(post.ID))
-
-	r.GET("/likes/:id", server.GetLikes)
-	req, err := http.NewRequest(http.MethodGet, "/likes/"+postIDString, nil)
-	if err != nil {
-		t.Errorf("this is the error: %v\n", err)
+	postSample := []struct {
+		postID      string
+		usersLength int
+		likesLength int
+		statusCode  int
+	}{
+		{
+			postID:      strconv.Itoa(int(post.ID)),
+			statusCode:  200,
+			usersLength: len(users),
+			likesLength: len(likes),
+		},
+		{
+			postID:     "unknwon",
+			statusCode: 400,
+		},
+		{
+			postID:     strconv.Itoa(12322), //an id that does not exist
+			statusCode: 404,
+		},
 	}
-	rr := httptest.NewRecorder()
-	r.ServeHTTP(rr, req)
+	for _, v := range postSample {
 
-	likesInterface := make(map[string]interface{})
-	err = json.Unmarshal([]byte(rr.Body.String()), &likesInterface)
-	if err != nil {
-		log.Fatalf("Cannot convert to json: %v\n", err)
+		r := gin.Default()
+		r.GET("/likes/:id", server.GetLikes)
+		req, err := http.NewRequest(http.MethodGet, "/likes/"+v.postID, nil)
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			t.Errorf("Cannot convert to json here: %v", err)
+		}
+		assert.Equal(t, rr.Code, v.statusCode)
+
+		if v.statusCode == 200 {
+			responseMap := responseInterface["response"].([]interface{})
+			assert.Equal(t, len(responseMap), v.likesLength)
+			assert.Equal(t, v.usersLength, 2)
+		}
+		if v.statusCode == 400 || v.statusCode == 404 {
+			responseMap := responseInterface["error"].(map[string]interface{})
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
+			}
+			if responseMap["No_post"] != nil {
+				assert.Equal(t, responseMap["No_post"], "No Post Found")
+			}
+		}
 	}
-	theLikes := likesInterface["response"].([]interface{})
-	assert.Equal(t, rr.Code, http.StatusOK)
-	assert.Equal(t, len(theLikes), len(likes))
-	assert.Equal(t, len(users), 2)
 }

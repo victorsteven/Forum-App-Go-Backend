@@ -16,6 +16,8 @@ import (
 
 func TestCreatePost(t *testing.T) {
 
+	gin.SetMode(gin.TestMode)
+
 	err := refreshUserAndPostTable()
 	if err != nil {
 		log.Fatal(err)
@@ -80,8 +82,6 @@ func TestCreatePost(t *testing.T) {
 	}
 
 	for _, v := range samples {
-
-		gin.SetMode(gin.TestMode)
 
 		r := gin.Default()
 
@@ -327,8 +327,6 @@ func TestUpdatePost(t *testing.T) {
 		},
 	}
 	for _, v := range samples {
-
-		gin.SetMode(gin.TestMode)
 
 		r := gin.Default()
 
