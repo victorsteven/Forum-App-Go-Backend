@@ -215,19 +215,17 @@ func TestGetLikes(t *testing.T) {
 }
 
 func TestDeleteLike(t *testing.T) {
-	// Let the second user delete his like
 
 	gin.SetMode(gin.TestMode)
 
 	var secondUserEmail, secondUserPassword string
-	var secondUserID uint32
 	var secondLike uint64
 
 	err := refreshUserPostAndLikeTable()
 	if err != nil {
 		log.Fatal(err)
 	}
-	post, users, likes, err := seedUsersPostsAndLikes()
+	_, users, likes, err := seedUsersPostsAndLikes()
 	if err != nil {
 		log.Fatalf("Cannot seed tables %v\n", err)
 	}
@@ -236,7 +234,6 @@ func TestDeleteLike(t *testing.T) {
 		if user.ID == 1 {
 			continue
 		}
-		secondUserID = user.ID
 		secondUserEmail = user.Email
 		secondUserPassword = "password" //Note the password in the database is already hashed, we want unhashed
 	}
@@ -312,11 +309,8 @@ func TestDeleteLike(t *testing.T) {
 		assert.Equal(t, rr.Code, v.statusCode)
 
 		if v.statusCode == 200 {
-			responseMap := responseInterface["response"].(map[string]interface{})
-			// Assert the like that was deleted
-			fmt.Println("this is the response map: ", responseMap)
-			assert.Equal(t, responseMap["post_id"], float64(post.ID))
-			assert.Equal(t, responseMap["user_id"], float64(secondUserID))
+			responseMap := responseInterface["response"]
+			assert.Equal(t, responseMap, "Like deleted")
 		}
 		if v.statusCode == 400 || v.statusCode == 401 || v.statusCode == 404 {
 			responseMap := responseInterface["error"].(map[string]interface{})
