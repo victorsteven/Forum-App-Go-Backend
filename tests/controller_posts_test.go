@@ -154,7 +154,7 @@ func TestGetPosts(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Cannot convert to json: %v\n", err)
 	}
-	// This is so that we can get the length of the users:
+	// This is so that we can get the length of the posts:
 	thePosts := postsInterface["response"].([]interface{})
 	assert.Equal(t, rr.Code, http.StatusOK)
 	assert.Equal(t, len(thePosts), 2)

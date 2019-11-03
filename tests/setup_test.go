@@ -253,34 +253,51 @@ func refreshUserPostAndLikeTable() error {
 	return nil
 }
 
-func seedOneUserOnePostAndOneLike() (models.Like, error) {
-	user := models.User{
-		Username: "Abdul",
-		Email:    "abdul@gmail.com",
-		Password: "password",
-	}
-	err := server.DB.Model(&models.User{}).Create(&user).Error
-	if err != nil {
-		return models.Like{}, err
-	}
+func seedUsersPostsAndLikes() (models.Post, []models.User, []models.Like, error) {
 
+	// The idea here is: two users can like one post
+
+	var err error
+
+	var users = []models.User{
+		models.User{
+			Username: "Steven",
+			Email:    "steven@gmail.com",
+			Password: "password",
+		},
+		models.User{
+			Username: "Magu",
+			Email:    "magu@gmail.com",
+			Password: "password",
+		},
+	}
 	post := models.Post{
-		Title:    "This is the title abdul",
-		Content:  "This is the content abdul",
-		AuthorID: user.ID,
+		Title:   "This is the title",
+		Content: "This is the content",
 	}
 	err = server.DB.Model(&models.Post{}).Create(&post).Error
 	if err != nil {
-		return models.Like{}, err
+		log.Fatalf("cannot seed post table: %v", err)
 	}
-
-	like := models.Like{
-		UserID: user.ID,
-		PostID: post.ID,
+	var likes = []models.Like{
+		models.Like{
+			UserID: 1,
+			PostID: post.ID,
+		},
+		models.Like{
+			UserID: 2,
+			PostID: post.ID,
+		},
 	}
-	err = server.DB.Model(&models.Like{}).Create(&like).Error
-	if err != nil {
-		return models.Like{}, err
+	for i, _ := range users {
+		err = server.DB.Model(&models.User{}).Create(&users[i]).Error
+		if err != nil {
+			log.Fatalf("cannot seed users table: %v", err)
+		}
+		err = server.DB.Model(&models.Like{}).Create(&likes[i]).Error
+		if err != nil {
+			log.Fatalf("cannot seed likes table: %v", err)
+		}
 	}
-	return like, nil
+	return post, users, likes, nil
 }

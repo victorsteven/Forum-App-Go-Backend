@@ -146,3 +146,38 @@ func TestLikePost(t *testing.T) {
 		}
 	}
 }
+
+func TestGetLikes(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	r := gin.Default()
+
+	err := refreshUserPostAndLikeTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	post, users, likes, err := seedUsersPostsAndLikes()
+	if err != nil {
+		log.Fatalf("Cannot seed tables %v\n", err)
+	}
+	postIDString := strconv.Itoa(int(post.ID))
+
+	r.GET("/likes/:id", server.GetLikes)
+	req, err := http.NewRequest(http.MethodGet, "/likes/"+postIDString, nil)
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	likesInterface := make(map[string]interface{})
+	err = json.Unmarshal([]byte(rr.Body.String()), &likesInterface)
+	if err != nil {
+		log.Fatalf("Cannot convert to json: %v\n", err)
+	}
+	theLikes := likesInterface["response"].([]interface{})
+	assert.Equal(t, rr.Code, http.StatusOK)
+	assert.Equal(t, len(theLikes), len(likes))
+	assert.Equal(t, len(users), 2)
+}
