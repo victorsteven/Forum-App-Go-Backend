@@ -15,43 +15,95 @@ import (
 
 func TestLikePost(t *testing.T) {
 
+	var firstUserEmail, secondUserEmail string
+	var firstPostID uint64
+
 	err := refreshUserPostAndLikeTable()
 	if err != nil {
 		log.Fatal(err)
 	}
-	post, err := seedOneUserAndOnePost()
+	users, posts, err := seedUsersAndPosts()
 	if err != nil {
 		log.Fatalf("Cannot seed user %v\n", err)
 	}
 
+	// Get only the first user
+	for _, user := range users {
+		if user.ID == 1 {
+			firstUserEmail = user.Email
+		}
+		if user.ID == 2 {
+			secondUserEmail = user.Email
+		}
+	}
+	// Get only the first post, which belongs to first user
+	for _, post := range posts {
+		if post.ID == 2 {
+			continue
+		}
+		firstPostID = post.ID
+	}
+	// Login both users
+	// user 1 and user 2 password are the same, you can change if you want (Note by the time they are hashed and saved in the db, they are different)
 	// Note: the value of the user password before it was hashed is "password". so:
 	password := "password"
-	tokenInterface, err := server.SignIn(post.Author.Email, password) //get the auth user email from the post
+
+	// Login First User
+	tokenInterface1, err := server.SignIn(firstUserEmail, password)
 	if err != nil {
 		log.Fatalf("cannot login: %v\n", err)
 	}
-	token := tokenInterface["token"] //get only the token
-	tokenString := fmt.Sprintf("Bearer %v", token)
+	token1 := tokenInterface1["token"] //get only the token
+	firstUserToken := fmt.Sprintf("Bearer %v", token1)
+
+	// Login Second User
+	tokenInterface2, err := server.SignIn(secondUserEmail, password)
+	if err != nil {
+		log.Fatalf("cannot login: %v\n", err)
+	}
+	token2 := tokenInterface2["token"] //get only the token
+	secondUserToken := fmt.Sprintf("Bearer %v", token2)
 
 	samples := []struct {
-		postID     string
-		statusCode int
-		tokenGiven string
+		postIDString string
+		statusCode   int
+		userID       uint32
+		postID       uint64
+		tokenGiven   string
 	}{
 		{
-			postID:     strconv.Itoa(int(post.ID)),
-			statusCode: 201,
-			tokenGiven: tokenString,
+			// User 1 can like his post
+			postIDString: strconv.Itoa(int(firstPostID)), //we need the id as a string
+			statusCode:   201,
+			userID:       1,
+			postID:       firstPostID,
+			tokenGiven:   firstUserToken,
 		},
 		{
-			postID:     strconv.Itoa(int(post.ID)),
-			statusCode: 401,
-			tokenGiven: "",
+			// User 2 can also like user 1 post
+			postIDString: strconv.Itoa(int(firstPostID)),
+			statusCode:   201,
+			userID:       2,
+			postID:       firstPostID,
+			tokenGiven:   secondUserToken,
 		},
 		{
-			postID:     strconv.Itoa(int(post.ID)),
-			statusCode: 401,
-			tokenGiven: "This is an incorrect token",
+			// An authenticated user cannot like a post more than once
+			postIDString: strconv.Itoa(int(firstPostID)),
+			statusCode:   500,
+			tokenGiven:   firstUserToken,
+		},
+		{
+			// Not authenticated (No token provided)
+			postIDString: strconv.Itoa(int(firstPostID)),
+			statusCode:   401,
+			tokenGiven:   "",
+		},
+		{
+			// Wrong Token
+			postIDString: strconv.Itoa(int(firstPostID)),
+			statusCode:   401,
+			tokenGiven:   "This is an incorrect token",
 		},
 	}
 
@@ -62,7 +114,7 @@ func TestLikePost(t *testing.T) {
 		r := gin.Default()
 
 		r.POST("/likes/:id", server.LikePost)
-		req, err := http.NewRequest(http.MethodPost, "/likes/"+v.postID, nil)
+		req, err := http.NewRequest(http.MethodPost, "/likes/"+v.postIDString, nil)
 		req.Header.Set("Authorization", v.tokenGiven)
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -79,26 +131,18 @@ func TestLikePost(t *testing.T) {
 
 		if v.statusCode == 201 {
 			responseMap := responseInterface["response"].(map[string]interface{})
-			fmt.Println("this is the like response: ", responseMap)
-			// assert.Equal(t, responseMap["title"], v.title)
-			// assert.Equal(t, responseMap["content"], v.content)
+			assert.Equal(t, responseMap["post_id"], float64(v.postID))
+			assert.Equal(t, responseMap["user_id"], float64(v.userID))
 		}
+		if v.statusCode == 401 || v.statusCode == 422 || v.statusCode == 500 {
+			responseMap := responseInterface["error"].(map[string]interface{})
 
-		// if v.statusCode == 401 || v.statusCode == 422 || v.statusCode == 500 {
-		// 	responseMap := responseInterface["error"].(map[string]interface{})
-
-		// 	if responseMap["Unauthorized"] != nil {
-		// 		assert.Equal(t, responseMap["Unauthorized"], "Unauthorized")
-		// 	}
-		// 	if responseMap["Taken_title"] != nil {
-		// 		assert.Equal(t, responseMap["Taken_title"], "Title Already Taken")
-		// 	}
-		// 	if responseMap["Required_title"] != nil {
-		// 		assert.Equal(t, responseMap["Required_title"], "Required Title")
-		// 	}
-		// 	if responseMap["Required_content"] != nil {
-		// 		assert.Equal(t, responseMap["Required_content"], "Required Content")
-		// 	}
-		// }
+			if responseMap["Unauthorized"] != nil {
+				assert.Equal(t, responseMap["Unauthorized"], "Unauthorized")
+			}
+			if responseMap["Double_like"] != nil {
+				assert.Equal(t, responseMap["Double_like"], "You cannot like this post twice")
+			}
+		}
 	}
 }

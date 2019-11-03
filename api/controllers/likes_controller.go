@@ -85,7 +85,6 @@ func (server *Server) GetLikes(c *gin.Context) {
 
 	postID := c.Param("id")
 
-	//fmt.Println("THe post is is id: ", postID)
 	// Is a valid post id given to us?
 	pid, err := strconv.ParseUint(postID, 10, 64)
 	if err != nil {
