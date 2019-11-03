@@ -170,7 +170,7 @@ func TestGetComments(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	post, users, comments, err := seedUsersPostsAndCommments()
+	post, users, comments, err := seedUsersPostsAndComments()
 	if err != nil {
 		log.Fatalf("Cannot seed tables %v\n", err)
 	}
@@ -229,20 +229,143 @@ func TestGetComments(t *testing.T) {
 	}
 }
 
-// func TestDeleteComment(t *testing.T) {
-// 	// Let the second user delete his like
+func TestUpdateComment(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	var secondUserEmail, secondUserPassword string
+	var secondUserID uint32
+	var secondCommentID uint64
+
+	err := refreshUserPostAndCommentTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	post, users, comments, err := seedUsersPostsAndComments()
+	if err != nil {
+		log.Fatalf("Cannot seed tables %v\n", err)
+	}
+	// Get only the second user
+	for _, user := range users {
+		if user.ID == 1 {
+			continue
+		}
+		secondUserID = user.ID
+		secondUserEmail = user.Email
+		secondUserPassword = "password" //Note the password in the database is already hashed, we want unhashed
+	}
+	// Get only the second like
+	for _, comment := range comments {
+		if comment.ID == 1 {
+			continue
+		}
+		secondCommentID = comment.ID
+	}
+	//Login the user and get the authentication token
+	tokenInterface, err := server.SignIn(secondUserEmail, secondUserPassword)
+	if err != nil {
+		log.Fatalf("cannot login: %v\n", err)
+	}
+	token := tokenInterface["token"] //get only the token
+	tokenString := fmt.Sprintf("Bearer %v", token)
+
+	commentsSample := []struct {
+		commentID  string
+		updateJSON string
+		Body       string
+		tokenGiven string
+		statusCode int
+	}{
+		{
+			commentID:  strconv.Itoa(int(secondCommentID)),
+			updateJSON: `{"Body":"This is the update body"}`,
+			statusCode: 200,
+			Body:       "This is the update body",
+			tokenGiven: tokenString,
+		},
+		{
+			// When the body field is empty
+			commentID:  strconv.Itoa(int(secondCommentID)),
+			updateJSON: `{"Body":""}`,
+			statusCode: 422,
+			tokenGiven: tokenString,
+		},
+		{
+			//an id that does not exist
+			commentID:  strconv.Itoa(12322),
+			statusCode: 404,
+			tokenGiven: tokenString,
+		},
+		{
+			//When the user is not authenticated
+			commentID:  strconv.Itoa(int(secondCommentID)),
+			statusCode: 401,
+			tokenGiven: "",
+		},
+		{
+			//When wrong token is passed
+			commentID:  strconv.Itoa(int(secondCommentID)),
+			statusCode: 401,
+			tokenGiven: "this is a wrong token",
+		},
+		{
+			// When id passed is invalid
+			commentID:  "unknwon",
+			statusCode: 400,
+		},
+	}
+	for _, v := range commentsSample {
+		r := gin.Default()
+		r.PUT("/comments/:id", server.UpdateComment)
+		req, err := http.NewRequest(http.MethodPut, "/comments/"+v.commentID, bytes.NewBufferString(v.updateJSON))
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		req.Header.Set("Authorization", v.tokenGiven)
+		r.ServeHTTP(rr, req)
+
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			t.Errorf("Cannot convert to json here: %v", err)
+		}
+		assert.Equal(t, rr.Code, v.statusCode)
+
+		if v.statusCode == 200 {
+			responseMap := responseInterface["response"].(map[string]interface{})
+			assert.Equal(t, responseMap["post_id"], float64(post.ID))
+			assert.Equal(t, responseMap["user_id"], float64(secondUserID))
+			assert.Equal(t, responseMap["body"], v.Body)
+		}
+		if v.statusCode == 400 || v.statusCode == 401 || v.statusCode == 404 {
+			responseMap := responseInterface["error"].(map[string]interface{})
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
+			}
+			if responseMap["Unauthorized"] != nil {
+				assert.Equal(t, responseMap["Unauthorized"], "Unauthorized")
+			}
+			if responseMap["No_comment"] != nil {
+				assert.Equal(t, responseMap["No_comment"], "No Comment Found")
+			}
+		}
+	}
+}
+
+// func TestUpdateComment(t *testing.T) {
 
 // 	gin.SetMode(gin.TestMode)
 
 // 	var secondUserEmail, secondUserPassword string
 // 	var secondUserID uint32
-// 	var secondLike uint64
+// 	var secondCommentID uint64
 
 // 	err := refreshUserPostAndCommentTable()
 // 	if err != nil {
 // 		log.Fatal(err)
 // 	}
-// 	post, users, likes, err := seedUsersPostsAndCommments()
+// 	post, users, comments, err := seedUsersPostsAndComments()
 // 	if err != nil {
 // 		log.Fatalf("Cannot seed tables %v\n", err)
 // 	}
@@ -256,11 +379,11 @@ func TestGetComments(t *testing.T) {
 // 		secondUserPassword = "password" //Note the password in the database is already hashed, we want unhashed
 // 	}
 // 	// Get only the second like
-// 	for _, like := range likes {
-// 		if like.ID == 1 {
+// 	for _, comment := range comments {
+// 		if comment.ID == 1 {
 // 			continue
 // 		}
-// 		secondLike = like.ID
+// 		secondCommentID = comment.ID
 // 	}
 
 // 	//Login the user and get the authentication token
@@ -272,46 +395,46 @@ func TestGetComments(t *testing.T) {
 // 	tokenString := fmt.Sprintf("Bearer %v", token)
 
 // 	commentsSample := []struct {
-// 		likeID      string
+// 		commentID      string
 // 		usersLength int
 // 		tokenGiven  string
 // 		commentsLength int
 // 		statusCode  int
 // 	}{
 // 		{
-// 			likeID:     strconv.Itoa(int(secondLike)),
+// 			commentID:     strconv.Itoa(int(secondCommentID)),
 // 			statusCode: 200,
 // 			tokenGiven: tokenString,
 // 		},
 // 		{
 // 			//an id that does not exist
-// 			likeID:     strconv.Itoa(12322),
+// 			commentID:     strconv.Itoa(12322),
 // 			statusCode: 404,
 // 			tokenGiven: tokenString,
 // 		},
 // 		{
 // 			//When the user is not authenticated
-// 			likeID:     strconv.Itoa(int(secondLike)),
+// 			commentID:     strconv.Itoa(int(secondCommentID)),
 // 			statusCode: 401,
 // 			tokenGiven: "",
 // 		},
 // 		{
 // 			//When wrong token is passed
-// 			likeID:     strconv.Itoa(int(secondLike)),
+// 			commentID:     strconv.Itoa(int(secondCommentID)),
 // 			statusCode: 401,
 // 			tokenGiven: "this is a wrong token",
 // 		},
 // 		{
 // 			// When id passed is invalid
-// 			likeID:     "unknwon",
+// 			commentID:     "unknwon",
 // 			statusCode: 400,
 // 		},
 // 	}
 // 	for _, v := range commentsSample {
 
 // 		r := gin.Default()
-// 		r.GET("/likes/:id", server.DeleteComment)
-// 		req, err := http.NewRequest(http.MethodGet, "/likes/"+v.likeID, nil)
+// 		r.GET("/comments/:id", server.UnLikePost)
+// 		req, err := http.NewRequest(http.MethodGet, "/comments/"+v.commentID, nil)
 // 		if err != nil {
 // 			t.Errorf("this is the error: %v\n", err)
 // 		}

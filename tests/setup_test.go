@@ -266,7 +266,7 @@ func refreshUserPostAndCommentTable() error {
 	return nil
 }
 
-func seedUsersPostsAndCommments() (models.Post, []models.User, []models.Comment, error) {
+func seedUsersPostsAndComments() (models.Post, []models.User, []models.Comment, error) {
 	// The idea here is: two users can comment one post
 	var err error
 	var users = []models.User{
