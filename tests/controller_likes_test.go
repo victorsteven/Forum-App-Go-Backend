@@ -27,7 +27,6 @@ func TestLikePost(t *testing.T) {
 		log.Fatalf("Cannot seed user %v\n", err)
 	}
 
-	// Get only the first user
 	for _, user := range users {
 		if user.ID == 1 {
 			firstUserEmail = user.Email

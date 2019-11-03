@@ -2,51 +2,31 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/auth"
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
-	"io/ioutil"
-	"net/http"
-	"strconv"
 )
-
 
 func (server *Server) CreateComment(c *gin.Context) {
 	//clear previous error if any
 	errList = map[string]string{}
 
-	body, err := ioutil.ReadAll(c.Request.Body)
+	postID := c.Param("id")
+	pid, err := strconv.ParseUint(postID, 10, 64)
 	if err != nil {
-		errList["Invalid_body"] = "Unable to get request"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
+		errList["Invalid_request"] = "Invalid Request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": http.StatusBadRequest,
 			"error":  errList,
 		})
 		return
 	}
-	//the value of the post id and the user id are integers
-	requestBody := make(map[string]interface{})
-	err = json.Unmarshal(body, &requestBody)
-	if err != nil {
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
-
-	comment := models.Comment{}
-
-	//convert the interface type to integer
-	userID  := uint32((requestBody["user_id"]).(float64))
-	postString := fmt.Sprintf("%v", requestBody["post_id"]) //convert interface to string
-	postInt, _ := strconv.Atoi(postString) //convert string to integer
-	postID := uint64(postInt)
-	commentString := fmt.Sprintf("%v", requestBody["body"])
-
+	// check the token
 	uid, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
 		errList["Unauthorized"] = "Unauthorized"
@@ -56,7 +36,10 @@ func (server *Server) CreateComment(c *gin.Context) {
 		})
 		return
 	}
-	if uid != userID {
+	// check if the user exists;
+	user := models.User{}
+	err = server.DB.Debug().Model(models.User{}).Where("id = ?", uid).Take(&user).Error
+	if err != nil {
 		errList["Unauthorized"] = "Unauthorized"
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": http.StatusUnauthorized,
@@ -64,10 +47,39 @@ func (server *Server) CreateComment(c *gin.Context) {
 		})
 		return
 	}
-
-	comment.UserID = userID
-	comment.PostID = postID
-	comment.Body = commentString
+	// check if the post exist:
+	post := models.Post{}
+	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
+	if err != nil {
+		errList["Unauthorized"] = "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status": http.StatusUnauthorized,
+			"error":  errList,
+		})
+		return
+	}
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["Invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	comment := models.Comment{}
+	err = json.Unmarshal(body, &comment)
+	if err != nil {
+		errList["Unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
+		return
+	}
+	// enter the userid and the postid. The comment body is automatically passed
+	comment.UserID = uid
+	comment.PostID = pid
 
 	comment.Prepare()
 	errorMessages := comment.Validate("")
@@ -79,7 +91,6 @@ func (server *Server) CreateComment(c *gin.Context) {
 		})
 		return
 	}
-
 	commentCreated, err := comment.SaveComment(server.DB)
 	if err != nil {
 		formattedError := formaterror.FormatError(err.Error())
@@ -90,14 +101,13 @@ func (server *Server) CreateComment(c *gin.Context) {
 		})
 		return
 	}
-
 	c.JSON(http.StatusCreated, gin.H{
 		"status":   http.StatusCreated,
 		"response": commentCreated,
 	})
 }
 
-func (server *Server) GetComments(c *gin.Context){
+func (server *Server) GetComments(c *gin.Context) {
 
 	//clear previous error if any
 	errList = map[string]string{}
@@ -131,7 +141,6 @@ func (server *Server) GetComments(c *gin.Context){
 		"response": comments,
 	})
 }
-
 
 func (server *Server) UpdateComment(c *gin.Context) {
 
@@ -284,7 +293,7 @@ func (server *Server) DeleteComment(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"status": http.StatusOK,
-		"response":  "comment deleted",
+		"status":   http.StatusOK,
+		"response": "comment deleted",
 	})
 }
