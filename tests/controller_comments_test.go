@@ -164,73 +164,70 @@ func TestCommentPost(t *testing.T) {
 	}
 }
 
-// func TestGetComments(t *testing.T) {
+func TestGetComments(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	err := refreshUserPostAndCommentTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	post, users, comments, err := seedUsersPostsAndCommments()
+	if err != nil {
+		log.Fatalf("Cannot seed tables %v\n", err)
+	}
+	commentsSample := []struct {
+		postID         string
+		usersLength    int
+		commentsLength int
+		statusCode     int
+	}{
+		{
+			postID:         strconv.Itoa(int(post.ID)),
+			statusCode:     200,
+			usersLength:    len(users),
+			commentsLength: len(comments),
+		},
+		{
+			postID:     "unknwon",
+			statusCode: 400,
+		},
+		{
+			postID:     strconv.Itoa(12322), //an id that does not exist
+			statusCode: 404,
+		},
+	}
+	for _, v := range commentsSample {
+		r := gin.Default()
+		r.GET("/comments/:id", server.GetComments)
+		req, err := http.NewRequest(http.MethodGet, "/comments/"+v.postID, nil)
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
 
-// 	gin.SetMode(gin.TestMode)
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			t.Errorf("Cannot convert to json here: %v", err)
+		}
+		assert.Equal(t, rr.Code, v.statusCode)
 
-// 	err := refreshUserPostAndCommentTable()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	post, users, likes, err := seedUsersPostsAndCommments()
-// 	if err != nil {
-// 		log.Fatalf("Cannot seed tables %v\n", err)
-// 	}
-// 	likesSample := []struct {
-// 		postID      string
-// 		usersLength int
-// 		likesLength int
-// 		statusCode  int
-// 	}{
-// 		{
-// 			postID:      strconv.Itoa(int(post.ID)),
-// 			statusCode:  200,
-// 			usersLength: len(users),
-// 			likesLength: len(likes),
-// 		},
-// 		{
-// 			postID:     "unknwon",
-// 			statusCode: 400,
-// 		},
-// 		{
-// 			postID:     strconv.Itoa(12322), //an id that does not exist
-// 			statusCode: 404,
-// 		},
-// 	}
-// 	for _, v := range likesSample {
-
-// 		r := gin.Default()
-// 		r.GET("/comments/:id", server.GetComments)
-// 		req, err := http.NewRequest(http.MethodGet, "/comments/"+v.postID, nil)
-// 		if err != nil {
-// 			t.Errorf("this is the error: %v\n", err)
-// 		}
-// 		rr := httptest.NewRecorder()
-// 		r.ServeHTTP(rr, req)
-
-// 		responseInterface := make(map[string]interface{})
-// 		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
-// 		if err != nil {
-// 			t.Errorf("Cannot convert to json here: %v", err)
-// 		}
-// 		assert.Equal(t, rr.Code, v.statusCode)
-
-// 		if v.statusCode == 200 {
-// 			responseMap := responseInterface["response"].([]interface{})
-// 			assert.Equal(t, len(responseMap), v.likesLength)
-// 			assert.Equal(t, v.usersLength, 2)
-// 		}
-// 		if v.statusCode == 400 || v.statusCode == 404 {
-// 			responseMap := responseInterface["error"].(map[string]interface{})
-// 			if responseMap["Invalid_request"] != nil {
-// 				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
-// 			}
-// 			if responseMap["No_post"] != nil {
-// 				assert.Equal(t, responseMap["No_post"], "No Post Found")
-// 			}
-// 		}
-// 	}
-// }
+		if v.statusCode == 200 {
+			responseMap := responseInterface["response"].([]interface{})
+			assert.Equal(t, len(responseMap), v.commentsLength)
+			assert.Equal(t, v.usersLength, 2)
+		}
+		if v.statusCode == 400 || v.statusCode == 404 {
+			responseMap := responseInterface["error"].(map[string]interface{})
+			if responseMap["Invalid_request"] != nil {
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
+			}
+			if responseMap["No_post"] != nil {
+				assert.Equal(t, responseMap["No_post"], "No post found")
+			}
+		}
+	}
+}
 
 // func TestDeleteComment(t *testing.T) {
 // 	// Let the second user delete his like
@@ -274,11 +271,11 @@ func TestCommentPost(t *testing.T) {
 // 	token := tokenInterface["token"] //get only the token
 // 	tokenString := fmt.Sprintf("Bearer %v", token)
 
-// 	likesSample := []struct {
+// 	commentsSample := []struct {
 // 		likeID      string
 // 		usersLength int
 // 		tokenGiven  string
-// 		likesLength int
+// 		commentsLength int
 // 		statusCode  int
 // 	}{
 // 		{
@@ -310,7 +307,7 @@ func TestCommentPost(t *testing.T) {
 // 			statusCode: 400,
 // 		},
 // 	}
-// 	for _, v := range likesSample {
+// 	for _, v := range commentsSample {
 
 // 		r := gin.Default()
 // 		r.GET("/likes/:id", server.DeleteComment)

@@ -124,11 +124,23 @@ func (server *Server) GetComments(c *gin.Context) {
 		})
 		return
 	}
+	// check if the post exist:
+	post := models.Post{}
+	err = server.DB.Debug().Model(models.Post{}).Where("id = ?", pid).Take(&post).Error
+	if err != nil {
+		errList["No_post"] = "No post found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": http.StatusNotFound,
+			"error":  errList,
+		})
+		return
+	}
+
 	comment := models.Comment{}
 
 	comments, err := comment.GetComments(server.DB, pid)
 	if err != nil {
-		errList["No_comments"] = "No Likes found"
+		errList["No_comments"] = "No comments found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"status": http.StatusNotFound,
 			"error":  errList,
