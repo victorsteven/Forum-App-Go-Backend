@@ -306,6 +306,6 @@ func (server *Server) DeleteComment(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
-		"response": "comment deleted",
+		"response": "Comment deleted",
 	})
 }
