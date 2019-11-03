@@ -194,6 +194,52 @@ func seedUsersAndPosts() ([]models.User, []models.Post, error) {
 	return users, posts, nil
 }
 
+// func seedTwoUsersAndOnePost() (models.Post, error) {
+
+// 	users := []models.User{
+// 		models.User{
+// 			Username: "Steven",
+// 			Email:    "steven@gmail.com",
+// 			Password: "password",
+// 		},
+// 		models.User{
+// 			Username: "Kenny",
+// 			Email:    "kenny@gmail.com",
+// 			Password: "password",
+// 		},
+// 	}
+// 	for i, _ := range users {
+// 		err := server.DB.Model(&models.User{}).Create(&users[i]).Error
+// 		if err != nil {
+// 			return models.Post{}, err
+// 		}
+// 	}
+
+// 	// return users, nil
+
+// 	// user := models.User{
+// 	// 	Username: "Sam",
+// 	// 	Email:    "sam@gmail.com",
+// 	// 	Password: "password",
+// 	// }
+// 	// err := server.DB.Model(&models.User{}).Create(&user).Error
+// 	// if err != nil {
+// 	// 	return models.Post{}, err
+// 	// }
+// 	// post := models.Post{
+// 	// 	Title:    "This is the title sam",
+// 	// 	Content:  "This is the content sam",
+// 	// 	AuthorID: user.ID,
+// 	// }
+// 	// err = server.DB.Model(&models.Post{}).Create(&post).Error
+// 	// if err != nil {
+// 	// 	return models.Post{}, err
+// 	// }
+// 	// post.Author = user
+
+// 	return post, nil
+// }
+
 func refreshUserPostAndLikeTable() error {
 	err := server.DB.DropTableIfExists(&models.User{}, &models.Post{}, &models.Like{}).Error
 	if err != nil {
