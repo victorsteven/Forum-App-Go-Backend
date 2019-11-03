@@ -88,6 +88,7 @@ func (server *Server) GetLikes(c *gin.Context) {
 	// Is a valid post id given to us?
 	pid, err := strconv.ParseUint(postID, 10, 64)
 	if err != nil {
+		fmt.Println("this is the error: ", err)
 		errList["Invalid_request"] = "Invalid Request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": http.StatusBadRequest,
@@ -128,7 +129,7 @@ func (server *Server) GetLikes(c *gin.Context) {
 func (server *Server) UnLikePost(c *gin.Context) {
 
 	likeID := c.Param("id")
-	// Is a valid post id given to us?
+	// Is a valid like id given to us?
 	lid, err := strconv.ParseUint(likeID, 10, 64)
 	if err != nil {
 		errList["Invalid_request"] = "Invalid Request"
@@ -138,8 +139,6 @@ func (server *Server) UnLikePost(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("this is the id to unlike: ", lid)
-
 	// Is this user authenticated?
 	uid, err := auth.ExtractTokenID(c.Request)
 	if err != nil {
