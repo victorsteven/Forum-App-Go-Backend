@@ -362,8 +362,8 @@ func TestUpdateUser(t *testing.T) {
 
 		r := gin.Default()
 
-		r.POST("/users/:id", server.UpdateUser)
-		req, err := http.NewRequest(http.MethodPost, "/users/"+v.id, bytes.NewBufferString(v.updateJSON))
+		r.PUT("/users/:id", server.UpdateUser)
+		req, err := http.NewRequest(http.MethodPut, "/users/"+v.id, bytes.NewBufferString(v.updateJSON))
 		req.Header.Set("Authorization", v.tokenGiven)
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
