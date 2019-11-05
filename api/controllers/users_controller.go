@@ -290,8 +290,6 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 	//if err != nil {
 	//	fmt.Printf("Could not upload file first error: %s\n", err)
 	//}
-	//
-	//
 	//fileName, err := SaveProfileImage(s, file)
 	//if err != nil {
 	//	fmt.Printf("Could not upload file %s\n", err)
@@ -444,7 +442,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 		})
 		return
 	}
-
 	updatedUser, err := newUser.UpdateAUser(server.DB, uint32(uid))
 	if err != nil {
 		errList := formaterror.FormatError(err.Error())
@@ -460,9 +457,6 @@ func (server *Server) UpdateUser(c *gin.Context) {
 	})
 }
 
-/*
-* This to shut down a users account, u can uncomment and try it, also uncomment the model method in User.go
- */
 func (server *Server) DeleteUser(c *gin.Context) {
 
 	//clear previous error if any

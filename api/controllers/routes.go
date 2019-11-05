@@ -6,8 +6,6 @@ import (
 
 func (s *Server) initializeRoutes() {
 
-	// sender := mailer.SendEmail{}
-
 	// Home Route
 	s.Router.GET("/", s.Home)
 

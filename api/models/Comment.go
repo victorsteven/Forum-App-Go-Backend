@@ -1,20 +1,21 @@
 package models
 
 import (
+	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"html"
 	"strings"
 	"time"
-	"html"
-	"errors"
+
+	"github.com/jinzhu/gorm"
 )
 
 type Comment struct {
 	ID        uint64    `gorm:"primary_key;auto_increment" json:"id"`
-	UserID  uint32    `gorm:"not null" json:"user_id"`
-	PostID  uint64    `gorm:"not null" json:"post_id"`
-	Body  string    `gorm:"not null" json:"body"`
-	User    User      `json:"user"`
+	UserID    uint32    `gorm:"not null" json:"user_id"`
+	PostID    uint64    `gorm:"not null" json:"post_id"`
+	Body      string    `gorm:"not null" json:"body"`
+	User      User      `json:"user"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -60,7 +61,7 @@ func (c *Comment) SaveComment(db *gorm.DB) (*Comment, error) {
 	return c, nil
 }
 
-func (c *Comment) GetComments(db *gorm.DB, pid uint64) (*[]Comment, error)  {
+func (c *Comment) GetComments(db *gorm.DB, pid uint64) (*[]Comment, error) {
 
 	comments := []Comment{}
 	err := db.Debug().Model(&Comment{}).Where("post_id = ?", pid).Order("created_at desc").Find(&comments).Error
@@ -99,7 +100,7 @@ func (c *Comment) UpdateAComment(db *gorm.DB) (*Comment, error) {
 
 func (c *Comment) DeleteAComment(db *gorm.DB) (int64, error) {
 
-	db = db.Debug().Model(&Comment{}).Where("id = ? and user_id = ?", c.ID, c.UserID).Take(&Comment{}).Delete(&Comment{})
+	db = db.Debug().Model(&Comment{}).Where("id = ?", c.ID).Take(&Comment{}).Delete(&Comment{})
 
 	if db.Error != nil {
 		return 0, db.Error

@@ -61,7 +61,7 @@ func TestFindPostByID(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error refreshing user and post table: %v\n", err)
 	}
-	post, err := seedOneUserAndOnePost()
+	_, post, err := seedOneUserAndOnePost()
 	if err != nil {
 		log.Fatalf("Error Seeding table")
 	}
@@ -81,7 +81,7 @@ func TestUpdateAPost(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error refreshing user and post table: %v\n", err)
 	}
-	post, err := seedOneUserAndOnePost()
+	_, post, err := seedOneUserAndOnePost()
 	if err != nil {
 		log.Fatalf("Error Seeding table")
 	}
@@ -108,7 +108,7 @@ func TestDeleteAPost(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error refreshing user and post table: %v\n", err)
 	}
-	post, err := seedOneUserAndOnePost()
+	_, post, err := seedOneUserAndOnePost()
 	if err != nil {
 		log.Fatalf("Error Seeding tables")
 	}

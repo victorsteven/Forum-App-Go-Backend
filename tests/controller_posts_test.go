@@ -168,7 +168,7 @@ func TestGetPostByID(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	post, err := seedOneUserAndOnePost()
+	_, post, err := seedOneUserAndOnePost()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -15,6 +15,8 @@ import (
 var server = controllers.Server{}
 var userInstance = models.User{}
 var postInstance = models.Post{}
+var likeInstance = models.Like{}
+var commentInstance = models.Comment{}
 
 func TestMain(m *testing.M) {
 	var err error
@@ -130,7 +132,7 @@ func refreshUserAndPostTable() error {
 	return nil
 }
 
-func seedOneUserAndOnePost() (models.Post, error) {
+func seedOneUserAndOnePost() (models.User, models.Post, error) {
 
 	user := models.User{
 		Username: "Sam",
@@ -139,7 +141,7 @@ func seedOneUserAndOnePost() (models.Post, error) {
 	}
 	err := server.DB.Model(&models.User{}).Create(&user).Error
 	if err != nil {
-		return models.Post{}, err
+		return models.User{}, models.Post{}, err
 	}
 	post := models.Post{
 		Title:    "This is the title sam",
@@ -148,9 +150,9 @@ func seedOneUserAndOnePost() (models.Post, error) {
 	}
 	err = server.DB.Model(&models.Post{}).Create(&post).Error
 	if err != nil {
-		return models.Post{}, err
+		return models.User{}, models.Post{}, err
 	}
-	return post, nil
+	return user, post, nil
 }
 
 func seedUsersAndPosts() ([]models.User, []models.Post, error) {
