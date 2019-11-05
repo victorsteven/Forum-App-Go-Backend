@@ -56,6 +56,10 @@ func Database() {
 	}
 }
 
+func Themailing() {
+
+}
+
 func refreshUserTable() error {
 	err := server.DB.DropTableIfExists(&models.User{}).Error
 	if err != nil {
@@ -312,4 +316,17 @@ func seedUsersPostsAndComments() (models.Post, []models.User, []models.Comment, 
 		}
 	}
 	return post, users, comments, nil
+}
+
+func refreshUserAndResetPasswordTable() error {
+	err := server.DB.DropTableIfExists(&models.User{}, &models.ResetPassword{}).Error
+	if err != nil {
+		return err
+	}
+	err = server.DB.AutoMigrate(&models.User{}, &models.ResetPassword{}).Error
+	if err != nil {
+		return err
+	}
+	log.Printf("Successfully refreshed user and resetpassword tables")
+	return nil
 }

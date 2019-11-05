@@ -2,15 +2,15 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/badoux/checkmail"
+	"io/ioutil"
+	"net/http"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/victorsteven/fullstack/api/mailer"
 	"github.com/victorsteven/fullstack/api/models"
 	"github.com/victorsteven/fullstack/api/security"
 	"github.com/victorsteven/fullstack/api/utils/formaterror"
-	"io/ioutil"
-	"net/http"
 )
 
 func (server *Server) ForgotPassword(c *gin.Context) {
@@ -27,8 +27,8 @@ func (server *Server) ForgotPassword(c *gin.Context) {
 		})
 		return
 	}
-	requestBody := map[string]string{}
-	err = json.Unmarshal(body, &requestBody)
+	user := models.User{}
+	err = json.Unmarshal(body, &user)
 	if err != nil {
 		errList["Unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -37,32 +37,17 @@ func (server *Server) ForgotPassword(c *gin.Context) {
 		})
 		return
 	}
-	user := models.User{}
-	resetPassword := models.ResetPassword{}
-
-	resetPassword.Prepare()
-
-	fmt.Printf("this is the user email: %s\n", requestBody["email"])
-
-	if requestBody["email"] == "" {
-		errList["Required_email"] = "Required Email"
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"status": http.StatusUnprocessableEntity,
-				"error":  errList,
-			})
+	user.Prepare()
+	errorMessages := user.Validate("forgotpassword")
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  errList,
+		})
 		return
 	}
-	if requestBody["email"] != "" {
-		if err = checkmail.ValidateFormat(requestBody["email"]); err != nil {
-			errList["Invalid_email"] = "Invalid Email"
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"status": http.StatusUnprocessableEntity,
-				"error":  errList,
-			})
-			return
-		}
-	}
-	err = server.DB.Debug().Model(models.User{}).Where("email = ?", requestBody["email"]).Take(&user).Error
+	err = server.DB.Debug().Model(models.User{}).Where("email = ?", user.Email).Take(&user).Error
 	if err != nil {
 		errList["No_email"] = "Sorry, we do not recognize this email"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -71,12 +56,15 @@ func (server *Server) ForgotPassword(c *gin.Context) {
 		})
 		return
 	}
+	resetPassword := models.ResetPassword{}
+	resetPassword.Prepare()
+
 	//generate the token:
-	token := security.TokenHash(requestBody["email"])
-	resetPassword.Email = requestBody["email"]
+	token := security.TokenHash(user.Email)
+	resetPassword.Email = user.Email
 	resetPassword.Token = token
 
-	resetRecord, err := resetPassword.SaveDatails(server.DB)
+	resetDetails, err := resetPassword.SaveDatails(server.DB)
 	if err != nil {
 		errList = formaterror.FormatError(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -86,12 +74,20 @@ func (server *Server) ForgotPassword(c *gin.Context) {
 		return
 	}
 	//Send welcome mail to the user:
-	err = mailer.SendResetPassword(resetRecord)
+	err = mailer.SendResetPassword(resetDetails.Email, os.Getenv("SENDGRID_FROM"), resetDetails.Token, os.Getenv("SENDGRID_API_KEY"), os.Getenv("APP_ENV"))
 	if err != nil {
-		fmt.Printf("this is the sending mail error: %s\n", err)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": http.StatusUnprocessableEntity,
+			"error":  err,
+		})
+		return
 	}
-}
 
+	c.JSON(http.StatusOK, gin.H{
+		"status":   http.StatusOK,
+		"response": "Success, Please click on the link provided in your email",
+	})
+}
 
 func (server *Server) ResetPassword(c *gin.Context) {
 	//remove any possible error, because the frontend dont reload
@@ -107,7 +103,6 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-
 	requestBody := map[string]string{}
 	err = json.Unmarshal(body, &requestBody)
 	if err != nil {
@@ -118,7 +113,6 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-
 	user := models.User{}
 	resetPassword := models.ResetPassword{}
 
@@ -131,7 +125,6 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-
 	err = server.DB.Debug().Model(models.User{}).Where("email = ?", resetPassword.Email).Take(&user).Error
 	if err != nil {
 		errList["No_email"] = "Sorry, we do not recognize this email"
@@ -141,7 +134,7 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-	if requestBody["new_password"] == "" || requestBody["retype_password"] == ""  {
+	if requestBody["new_password"] == "" || requestBody["retype_password"] == "" {
 		errList["Empty_passwords"] = "Please ensure both field are entered"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
@@ -149,10 +142,9 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-
-	if requestBody["new_password"] != "" && requestBody["retype_password"] != ""  {
+	if requestBody["new_password"] != "" && requestBody["retype_password"] != "" {
 		//Also check if the new password
-		if len(requestBody["new_password"]) < 6 || len(requestBody["retype_password"]) < 6  {
+		if len(requestBody["new_password"]) < 6 || len(requestBody["retype_password"]) < 6 {
 			errList["Invalid_Passwords"] = "Password should be atleast 6 characters"
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"status": http.StatusUnprocessableEntity,

@@ -6,6 +6,8 @@ import (
 
 func (s *Server) initializeRoutes() {
 
+	// sender := mailer.SendEmail{}
+
 	// Home Route
 	s.Router.GET("/", s.Home)
 
@@ -14,16 +16,16 @@ func (s *Server) initializeRoutes() {
 		// Login Route
 		v1.POST("/login", s.Login)
 
+		// Reset password:
+		v1.POST("/password/forgot", s.ForgotPassword)
+		v1.POST("/password/reset", s.ResetPassword)
+
 		//Users routes
 		v1.POST("/users", s.CreateUser)
 		v1.GET("/users", s.GetUsers)
 		v1.GET("/users/:id", s.GetUser)
 		v1.PUT("/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateUser)
 		v1.PUT("/avatar/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateAvatar)
-		v1.POST("/password/forgot", s.ForgotPassword)
-		v1.POST("/password/reset", s.ResetPassword)
-
-		//This is already done, will be uncommented later
 		v1.DELETE("/users/:id", middlewares.TokenAuthMiddleware(), s.DeleteUser)
 
 		//Posts routes

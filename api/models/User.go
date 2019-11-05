@@ -84,6 +84,17 @@ func (u *User) Validate(action string) map[string]string {
 				errorMessages["Invalid_email"] = err.Error()
 			}
 		}
+	case "forgotpassword":
+		if u.Email == "" {
+			err = errors.New("Required Email")
+			errorMessages["Required_email"] = err.Error()
+		}
+		if u.Email != "" {
+			if err = checkmail.ValidateFormat(u.Email); err != nil {
+				err = errors.New("Invalid Email")
+				errorMessages["Invalid_email"] = err.Error()
+			}
+		}
 	default:
 		if u.Username == "" {
 			err = errors.New("Required Username")

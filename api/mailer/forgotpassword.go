@@ -1,36 +1,29 @@
 package mailer
 
 import (
+	"os"
+
 	"github.com/matcornic/hermes/v2"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"github.com/victorsteven/fullstack/api/models"
-	"os"
 )
 
-func SendResetPassword(reset_password *models.ResetPassword) error {
-	// Configure hermes by setting a theme and your product info
+func SendResetPassword(ToUser string, FromAdmin string, Token string, Sendgridkey string, AppEnv string) error {
 	h := hermes.Hermes{
-		// Optional Theme
-		// Theme: new(Default)
 		Product: hermes.Product{
-			// Appears in header & footer of e-mails
 			Name: "SeamFlow",
 			Link: "https://seamflow.com",
-			// Optional product logo
 		},
 	}
-
 	var forgotUrl string
 	if os.Getenv("APP_ENV") == "production" {
-		forgotUrl = "https://seamflow.com/resetpassword/" + reset_password.Token
+		forgotUrl = "https://seamflow.com/resetpassword/" + Token //this is the url of the frontend app
 	} else {
-		forgotUrl = "http://127.0.0.1:3000/resetpassword/" + reset_password.Token
+		forgotUrl = "http://127.0.0.1:3000/resetpassword/" + Token //this is the url of the local
 	}
-
 	email := hermes.Email{
 		Body: hermes.Body{
-			Name: reset_password.Email,
+			Name: ToUser,
 			Intros: []string{
 				"Welcome to SeamFlow! Good to have you here.",
 			},
@@ -40,7 +33,7 @@ func SendResetPassword(reset_password *models.ResetPassword) error {
 					Button: hermes.Button{
 						Color: "#FFFFFF", // Optional action button color
 						Text:  "Reset Password",
-						Link: forgotUrl,
+						Link:  forgotUrl,
 					},
 				},
 			},
@@ -49,16 +42,15 @@ func SendResetPassword(reset_password *models.ResetPassword) error {
 			},
 		},
 	}
-	// Generate an HTML email with the provided contents (for modern clients)
 	emailBody, err := h.GenerateHTML(email)
 	if err != nil {
 		return err
 	}
-	from := mail.NewEmail("SeamFlow", os.Getenv("SENDGRID_FROM"))
+	from := mail.NewEmail("SeamFlow", FromAdmin)
 	subject := "Reset Password"
-	to := mail.NewEmail("Reset Password", reset_password.Email)
+	to := mail.NewEmail("Reset Password", ToUser)
 	message := mail.NewSingleEmail(from, subject, to, emailBody, emailBody)
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	client := sendgrid.NewSendClient(Sendgridkey)
 	_, err = client.Send(message)
 	if err != nil {
 		return err

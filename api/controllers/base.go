@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/victorsteven/fullstack/api/middlewares"
 	"log"
 	"net/http"
+
+	"github.com/victorsteven/fullstack/api/middlewares"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -52,13 +53,14 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 		&models.ResetPassword{},
 		&models.Like{},
 		&models.Comment{},
-		) //database migration
+	) //database migration
 
 	server.Router = gin.Default()
 	//server.Router.Use(cors.Default())
 	server.Router.Use(middlewares.CORSMiddleware())
 
 	server.initializeRoutes()
+
 }
 
 func (server *Server) Run(addr string) {
