@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -125,15 +126,15 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-	err = server.DB.Debug().Model(models.User{}).Where("email = ?", resetPassword.Email).Take(&user).Error
-	if err != nil {
-		errList["No_email"] = "Sorry, we do not recognize this email"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"status": http.StatusUnprocessableEntity,
-			"error":  errList,
-		})
-		return
-	}
+	// err = server.DB.Debug().Model(models.User{}).Where("email = ?", resetPassword.Email).Take(&user).Error
+	// if err != nil {
+	// 	errList["No_email"] = "Sorry, we do not recognize this email"
+	// 	c.JSON(http.StatusUnprocessableEntity, gin.H{
+	// 		"status": http.StatusUnprocessableEntity,
+	// 		"error":  errList,
+	// 	})
+	// 	return
+	// }
 	if requestBody["new_password"] == "" || requestBody["retype_password"] == "" {
 		errList["Empty_passwords"] = "Please ensure both field are entered"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -164,13 +165,16 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		user.Password = requestBody["new_password"]
 		user.Email = resetPassword.Email
 
+		fmt.Println("this is the user email: ", resetPassword.Email)
+
 		//update the password
 		user.Prepare()
 		err := user.UpdatePassword(server.DB)
 		if err != nil {
+			fmt.Println("this is the error: ", err)
 			errList["Cannot_save"] = "Cannot Save, Pls try again later"
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": http.StatusInternalServerError,
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"status": http.StatusUnprocessableEntity,
 				"error":  errList,
 			})
 			return
@@ -179,13 +183,12 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		_, err = resetPassword.DeleteDatails(server.DB)
 		if err != nil {
 			errList["Cannot_delete"] = "Cannot Delete record, Pls try again later"
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": http.StatusInternalServerError,
+			c.JSON(http.StatusNotFound, gin.H{
+				"status": http.StatusNotFound,
 				"error":  errList,
 			})
 			return
 		}
-
 		c.JSON(http.StatusOK, gin.H{
 			"status":   http.StatusOK,
 			"response": "Success",

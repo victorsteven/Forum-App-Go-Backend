@@ -330,3 +330,17 @@ func refreshUserAndResetPasswordTable() error {
 	log.Printf("Successfully refreshed user and resetpassword tables")
 	return nil
 }
+
+// Seed the reset password table with the token
+func seedResetPassword() (models.ResetPassword, error) {
+
+	resetDetails := models.ResetPassword{
+		Token: "awesometoken",
+		Email: "pet@gmail.com",
+	}
+	err := server.DB.Model(&models.ResetPassword{}).Create(&resetDetails).Error
+	if err != nil {
+		return models.ResetPassword{}, err
+	}
+	return resetDetails, nil
+}
