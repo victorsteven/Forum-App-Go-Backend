@@ -20,8 +20,8 @@ jobs: # basic units of work in a run
           command: go mod download
 
       - restore_cache:  # restores saved cache if no changes are detected since last run
-        keys:
-          - go-mod-v1-{{ checksum "go.sum" }}
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
 
       #  Wait for Postgres to be ready before proceeding
       - run:
