@@ -7,8 +7,8 @@ jobs: # basic units of work in a run
       # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
       - image: circleci/postgres:9.6-alpine
         environment: # environment variables for primary container
-          POSTGRES_USER: circleci-demo-go
-          POSTGRES_DB: circle_test
+          POSTGRES_USER: steven
+          POSTGRES_DB: fullstack_api_test
 
     working_directory: /go/src/github.com/victorsteven/fullstack
 
@@ -35,7 +35,7 @@ jobs: # basic units of work in a run
       - run:
           name: Run unit tests
           environment: # environment variables for the database url and path to migration files
-            CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
+            CONTACTS_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
 
           # store the results of our tests in the $TEST_RESULTS directory
           command: |
@@ -52,7 +52,7 @@ jobs: # basic units of work in a run
       - run:
           name: Start service
           environment:
-            CONTACTS_DB_URL: "postgres://circleci-demo-go@localhost:5432/circle_test?sslmode=disable"
+            CONTACTS_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
           command: ./workdir/contacts
           background: true # keep service running and proceed to next step
 
