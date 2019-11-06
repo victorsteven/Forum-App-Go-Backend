@@ -12,7 +12,7 @@ jobs: # basic units of work in a run
 
     parallelism: 2
 
-    working_directory: /go/src/github.com/fullstack
+    working_directory: /go/src/github.com/victorsteven/fullstack
 
     environment: # environment variables for the build itself
       TEST_RESULTS: /tmp/test-results # path to where test results will be saved
