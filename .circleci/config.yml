@@ -18,7 +18,7 @@ jobs: # basic units of work in a run
       - run:
           name: "Fetch dependencies"
           command: go mod download
-          
+
       - restore_cache:  # restores saved cache if no changes are detected since last run
         keys:
           - go-mod-v1-{{ checksum "go.sum" }}
@@ -32,7 +32,7 @@ jobs: # basic units of work in a run
           name: Run unit tests
           environment: # environment variables for the database url and path to migration files
             FULLSTACK_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
-          command: go test ./tests/...
+          command: go test -v ./tests/...
 
       - save_cache:
           key: go-mod-v1-{{ checksum "go.sum" }}
