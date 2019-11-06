@@ -5,7 +5,7 @@
 
 ## Getting Started
 
-> [[Technologies](#technologies-used) &middot;  &middot; [Installations](#installations) &middot; [API Endpoints](#api-endpoints) &middot; [Tests](#tests) &middot; [Author](#author)
+> [[Technologies](#technologies-used) &middot;  &middot; [Installations](#installations) &middot; &middot; [Tests](#tests) &middot; [Author](#author)
 
 
 ## Technologies Used
