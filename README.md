@@ -1,6 +1,4 @@
-# Forum-App-Go-Backend
-
-[![CircleCI](https://circleci.com/gh/victorsteven/Forum-App-Go-Backend.svg?style=svg)](https://circleci.com/gh/victorsteven/Forum-App-Go-Backend)
+- Forum-App-Go-Backend  [![CircleCI](https://circleci.com/gh/victorsteven/Forum-App-Go-Backend.svg?style=svg)](https://circleci.com/gh/victorsteven/Forum-App-Go-Backend)
  
 
 > This is a forum API built with Golang
@@ -74,11 +72,13 @@
   - Create a docker-compose.yml file in the root directory
   - Copy the content of the file: example.docker-compose.prod.yml (for production only)
 
-  > In the root directory, run the command
+  
+  In the root directory, run the command:
   ```shell
   $ docker-compose up --build
   ```
   - Use `http://localhost:8888` as base url for endpoints
+
 
 
 ## Tests
