@@ -35,36 +35,39 @@ func Database() {
 
 	var err error
 
-	TestDbDriver := os.Getenv("TEST_DB_DRIVER")
-
-	if TestDbDriver == "mysql" {
-		DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", os.Getenv("TEST_DB_USER"), os.Getenv("TEST_DB_PASSWORD"), os.Getenv("TEST_DB_HOST"), os.Getenv("TEST_DB_PORT"), os.Getenv("TEST_DB_NAME"))
-		server.DB, err = gorm.Open(TestDbDriver, DBURL)
-		if err != nil {
-			fmt.Printf("Cannot connect to %s database\n", TestDbDriver)
-			log.Fatal("This is the error:", err)
-		} else {
-			fmt.Printf("We are connected to the %s database\n", TestDbDriver)
-		}
-	}
-	if TestDbDriver == "postgres" {
-		DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", os.Getenv("TEST_DB_HOST"), os.Getenv("TEST_DB_PORT"), os.Getenv("TEST_DB_USER"), os.Getenv("TEST_DB_NAME"), os.Getenv("TEST_DB_PASSWORD"))
-		server.DB, err = gorm.Open(TestDbDriver, DBURL)
-		if err != nil {
-			fmt.Printf("Cannot connect to %s database\n", TestDbDriver)
-			log.Fatal("This is the error:", err)
-		} else {
-			fmt.Printf("We are connected to the %s database\n", TestDbDriver)
-		}
-	}
-	// DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "fullstack_api_test", "password")
-	// server.DB, err = gorm.Open("postgres", DBURL)
-	// if err != nil {
-	// 	fmt.Printf("Cannot connect to %s database\n", "postgres")
-	// 	log.Fatal("This is the error:", err)
-	// } else {
-	// 	fmt.Printf("We are connected to the %s database\n", "postgres")
+	// THIS WAS THE EARLIER IMPLEMENTATION WITHOUT CIRCLE CI
+	// TestDbDriver := os.Getenv("TEST_DB_DRIVER")
+	// if TestDbDriver == "mysql" {
+	// 	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", os.Getenv("TEST_DB_USER"), os.Getenv("TEST_DB_PASSWORD"), os.Getenv("TEST_DB_HOST"), os.Getenv("TEST_DB_PORT"), os.Getenv("TEST_DB_NAME"))
+	// 	server.DB, err = gorm.Open(TestDbDriver, DBURL)
+	// 	if err != nil {
+	// 		fmt.Printf("Cannot connect to %s database\n", TestDbDriver)
+	// 		log.Fatal("This is the error:", err)
+	// 	} else {
+	// 		fmt.Printf("We are connected to the %s database\n", TestDbDriver)
+	// 	}
 	// }
+	// if TestDbDriver == "postgres" {
+	// 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", os.Getenv("TEST_DB_HOST"), os.Getenv("TEST_DB_PORT"), os.Getenv("TEST_DB_USER"), os.Getenv("TEST_DB_NAME"), os.Getenv("TEST_DB_PASSWORD"))
+	// 	server.DB, err = gorm.Open(TestDbDriver, DBURL)
+	// 	if err != nil {
+	// 		fmt.Printf("Cannot connect to %s database\n", TestDbDriver)
+	// 		log.Fatal("This is the error:", err)
+	// 	} else {
+	// 		fmt.Printf("We are connected to the %s database\n", TestDbDriver)
+	// 	}
+	// }
+
+	// WE HAVE TO INPUT TESTING DATA MANUALLY BECAUSE CIRCLECI, CANNOT READ THE ".env" FILE WHICH, WE WOULD HAVE ADDED THE TEST CONFIG THERE
+	// SO MANUALLY ADD THE NAME OF THE DATABASE, THE USER AND THE PASSWORD, AS SEEN BELOW:
+	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "fullstack_api_test", "password")
+	server.DB, err = gorm.Open("postgres", DBURL)
+	if err != nil {
+		fmt.Printf("Cannot connect to %s database\n", "postgres")
+		log.Fatal("This is the error:", err)
+	} else {
+		fmt.Printf("We are connected to the %s database\n", "postgres")
+	}
 }
 
 func refreshUserTable() error {
