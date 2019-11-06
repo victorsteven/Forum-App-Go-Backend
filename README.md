@@ -52,7 +52,7 @@
 
   - Set the DB_HOST as follows in the .env file
     ```shell
-      $ DB_HOST=fullstack-postgres 
+      $ DB_HOST=forum-postgres 
     ```    
   ##### For Local Development:
   - Create a Dockerfile file in the root directory

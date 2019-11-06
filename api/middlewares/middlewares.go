@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/victorsteven/fullstack/api/auth"
+	"github.com/victorsteven/forum/api/auth"
 )
 
 func TokenAuthMiddleware() gin.HandlerFunc {

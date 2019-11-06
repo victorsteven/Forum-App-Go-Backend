@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/stretchr/testify/assert"
-	"github.com/victorsteven/fullstack/api/models"
+	"github.com/victorsteven/forum/api/models"
 )
 
 func TestFindAllPosts(t *testing.T) {

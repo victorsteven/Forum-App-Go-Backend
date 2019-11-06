@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/victorsteven/fullstack/api/security"
+	"github.com/victorsteven/forum/api/security"
 
 	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"

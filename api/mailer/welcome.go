@@ -4,7 +4,7 @@ import (
 	"github.com/matcornic/hermes/v2"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"github.com/victorsteven/fullstack/api/models"
+	"github.com/victorsteven/forum/api/models"
 	"os"
 )
 

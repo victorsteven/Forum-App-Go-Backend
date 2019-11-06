@@ -5,7 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	//"github.com/victorsteven/fullstack/api/security"
+	//"github.com/victorsteven/forum/api/security"
 	"strings"
 )
 

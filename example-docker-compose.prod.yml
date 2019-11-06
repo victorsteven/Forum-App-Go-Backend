@@ -9,14 +9,14 @@ services:
     volumes:
       - .:/usr/src/app
     depends_on:
-      - fullstack-postgres # This service depends on postgres. Start that first.
-      # - fullstack-mysql # This service depends on mysql. Start that first.
+      - forum-postgres # This service depends on postgres. Start that first.
+      # - forum-mysql # This service depends on mysql. Start that first.
     environment:
       - DOMAIN_NAME=chodapi.com
     networks:
-      - fullstack
+      - forum
 
-  fullstack-postgres:
+  forum-postgres:
     image: postgres:latest
     container_name: full_db_postgres
     environment:
@@ -29,7 +29,7 @@ services:
     volumes:
       - database_postgres:/var/lib/postgresql/data
     networks:
-      - fullstack
+      - forum
     
   pgadmin:
     image: dpage/pgadmin4
@@ -38,15 +38,15 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
-      - fullstack-postgres
+      - forum-postgres
     ports:
       - "5050:80"
     networks:
-      - fullstack
+      - forum
     restart: unless-stopped
 
   
-  # fullstack-mysql:
+  # forum-mysql:
   #   image: mysql:5.7
   #   container_name: full_db_mysql
   #   ports: 
@@ -60,13 +60,13 @@ services:
   #   volumes:
   #     - database_mysql:/var/lib/mysql
   #   networks:
-  #     - fullstack
+  #     - forum
   
   # phpmyadmin:
   #   image: phpmyadmin/phpmyadmin
   #   container_name: phpmyadmin_container
   #   depends_on:
-  #     - fullstack-mysql
+  #     - forum-mysql
   #   environment:
   #     - PMA_HOST=mysql # Note the "mysql". Must be the name of the what you used as the mysql service.
   #     - PMA_USER=${DB_USER}
@@ -76,7 +76,7 @@ services:
   #     - 9090:80
   #   restart: always
   #   networks:
-  #     - fullstack
+  #     - forum
 
 
 volumes:
@@ -86,6 +86,6 @@ volumes:
 
 # Networks to be created to facilitate communication between containers
 networks:
-  fullstack:
+  forum:
     driver: bridge
 

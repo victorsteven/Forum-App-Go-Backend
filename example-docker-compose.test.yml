@@ -10,7 +10,7 @@ services:
       - postgres_test
       # - mysql_test
     networks:
-      - fullstack_test
+      - forum_test
 
   postgres_test:
     image: postgres:latest
@@ -25,7 +25,7 @@ services:
     volumes:
       - database_postgres_test:/var/lib/postgresql/data
     networks:
-      - fullstack_test
+      - forum_test
     
   # mysql_test:
   #   image: mysql:5.7
@@ -41,7 +41,7 @@ services:
   #   volumes:
   #     - database_mysql_test:/var/lib/mysql
   #   networks:
-  #     - fullstack_test
+  #     - forum_test
   
 volumes:
   api_test:
@@ -49,5 +49,5 @@ volumes:
   # database_mysql_test:
 
 networks:
-  fullstack_test:
+  forum_test:
     driver: bridge

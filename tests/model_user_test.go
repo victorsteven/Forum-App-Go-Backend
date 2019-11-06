@@ -7,7 +7,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"    //mysql driver
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres driver
 	"github.com/stretchr/testify/assert"
-	"github.com/victorsteven/fullstack/api/models"
+	"github.com/victorsteven/forum/api/models"
 )
 
 func TestFindAllUsers(t *testing.T) {

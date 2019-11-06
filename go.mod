@@ -1,4 +1,4 @@
-module github.com/victorsteven/fullstack
+module github.com/victorsteven/forum
 
 go 1.12
 

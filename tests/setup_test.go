@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/jinzhu/gorm"
-	"github.com/victorsteven/fullstack/api/controllers"
-	"github.com/victorsteven/fullstack/api/models"
+	"github.com/victorsteven/forum/api/controllers"
+	"github.com/victorsteven/forum/api/models"
 )
 
 var server = controllers.Server{}
@@ -59,7 +59,7 @@ func Database() {
 
 	// WE HAVE TO INPUT TESTING DATA MANUALLY BECAUSE CIRCLECI, CANNOT READ THE ".env" FILE WHICH, WE WOULD HAVE ADDED THE TEST CONFIG THERE
 	// SO MANUALLY ADD THE NAME OF THE DATABASE, THE USER AND THE PASSWORD, AS SEEN BELOW:
-	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "fullstack_api_test", "password")
+	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "forum_db_test", "password")
 	server.DB, err = gorm.Open("postgres", DBURL)
 	if err != nil {
 		fmt.Printf("Cannot connect to %s database\n", "postgres")

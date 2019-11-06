@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/victorsteven/fullstack/api/middlewares"
+	"github.com/victorsteven/forum/api/middlewares"
 )
 
 func (s *Server) initializeRoutes() {

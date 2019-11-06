@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/victorsteven/fullstack/api/auth"
-	"github.com/victorsteven/fullstack/api/models"
-	"github.com/victorsteven/fullstack/api/utils/formaterror"
+	"github.com/victorsteven/forum/api/auth"
+	"github.com/victorsteven/forum/api/models"
+	"github.com/victorsteven/forum/api/utils/formaterror"
 )
 
 func (server *Server) CreateComment(c *gin.Context) {

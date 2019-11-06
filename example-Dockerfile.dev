@@ -21,4 +21,4 @@ RUN go get github.com/githubnemo/CompileDaemon
 # The ENTRYPOINT defines the command that will be ran when the container starts up
 # The "go build" command here build from the current directory
 # We will also execute the binary so that the server starts up. CompileDaemon handles the rest - anytime any .go file changes in the directory
-ENTRYPOINT CompileDaemon -log-prefix=false -build="go build ." -command="./fullstack"
+ENTRYPOINT CompileDaemon -log-prefix=false -build="go build ." -command="./forum"
