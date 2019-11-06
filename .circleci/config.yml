@@ -44,10 +44,10 @@ jobs: # basic units of work in a run
 
       - run: make # pull and build dependencies for the project
 
-      - save_cache:
-          key: go-mod-v4-{{ checksum "go.sum" }}
-          paths:
-            - "/go/pkg/mod"
+      # - save_cache:
+      #     key: go-mod-v4-{{ checksum "go.sum" }}
+      #     paths:
+      #       - "/go/pkg/mod"
 
       - run:
           name: Start service
