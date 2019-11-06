@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/jinzhu/gorm"
-	// "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 	"github.com/victorsteven/fullstack/api/controllers"
 	"github.com/victorsteven/fullstack/api/models"
 )
@@ -19,11 +19,11 @@ var likeInstance = models.Like{}
 var commentInstance = models.Comment{}
 
 func TestMain(m *testing.M) {
-	// var err error
-	// err = godotenv.Load(os.ExpandEnv("./../.env"))
-	// if err != nil {
-	// 	log.Fatalf("Error getting env %v\n", err)
-	// }
+	var err error
+	err = godotenv.Load(os.ExpandEnv("./../.env"))
+	if err != nil {
+		log.Fatalf("Error getting env %v\n", err)
+	}
 
 	Database()
 
