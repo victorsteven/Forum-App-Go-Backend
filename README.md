@@ -27,7 +27,7 @@
 
 ### Clone
 
-- Clone this project to your local machine `https://github.com/victorsteven/Forum-App-Go-Backend`
+- Clone this project to your local machine `https://github.com/victorsteven/Forum-App-Go-Backend.git`
 
 
 ### Setup
@@ -35,7 +35,7 @@
   #### Without Docker
 
   > Ensure that you have your .env set up and have created your database
-    - For local, set the DB_HOST in the .env file as follows:
+  - For local, set the DB_HOST in the .env file as follows:
     ```shell
       $ DB_HOST=127.0.0.1
     ```           
