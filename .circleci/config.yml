@@ -21,11 +21,12 @@ jobs: # basic units of work in a run
       - run:
           name: "Fetch dependencies"
           command: go mod download
+          
       - run: mkdir -p $TEST_RESULTS # create the test results directory
 
-      # - restore_cache: # restores saved cache if no changes are detected since last run
-      #     keys:
-      #       - go-mod-v4-{{ checksum "go.sum" }}
+      - restore_cache: # restores saved cache if no changes are detected since last run
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
 
       #  Wait for Postgres to be ready before proceeding
       - run:
@@ -44,10 +45,10 @@ jobs: # basic units of work in a run
 
       - run: make # pull and build dependencies for the project
 
-      # - save_cache:
-      #     key: go-mod-v4-{{ checksum "go.sum" }}
-      #     paths:
-      #       - "/go/pkg/mod"
+      - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
 
       - run:
           name: Start service
