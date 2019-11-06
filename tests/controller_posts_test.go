@@ -359,7 +359,7 @@ func TestUpdatePost(t *testing.T) {
 				assert.Equal(t, responseMap["Unauthorized"], "Unauthorized")
 			}
 			if responseMap["Invalid_request"] != nil {
-				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request yes")
+				assert.Equal(t, responseMap["Invalid_request"], "Invalid Request")
 			}
 			if responseMap["Taken_title"] != nil {
 				assert.Equal(t, responseMap["Taken_title"], "Title Already Taken")
