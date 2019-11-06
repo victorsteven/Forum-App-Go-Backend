@@ -37,32 +37,30 @@ jobs: # basic units of work in a run
           name: Run unit tests
           environment: # environment variables for the database url and path to migration files
             FULLSTACK_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
+          command: go test ./tests/...
 
           # store the results of our tests in the $TEST_RESULTS directory
-          command: |
-            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
-            gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
-
-      - run: make # pull and build dependencies for the project
+          # command: |
+          #   PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
+          #   gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
+      # - run: make # pull and build dependencies for the project
 
       - save_cache:
           key: go-mod-v1-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
 
-      - run:
-          name: Start service
-          environment:
-            FULLSTACK_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
-          command: ./workdir/contacts
-          background: true # keep service running and proceed to next step
-
-      - store_artifacts: # upload test summary for display in Artifacts
-          path: /tmp/test-results
-          destination: raw-test-output
-
-      - store_test_results: # upload test results for display in Test Summary
-          path: /tmp/test-results
+      # - run:
+      #     name: Start service
+      #     environment:
+      #       FULLSTACK_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
+      #     command: ./workdir/contacts
+      #     background: true # keep service running and proceed to next step
+      # - store_artifacts: # upload test summary for display in Artifacts
+      #     path: /tmp/test-results
+      #     destination: raw-test-output
+      # - store_test_results: # upload test results for display in Test Summary
+      #     path: /tmp/test-results
 workflows:
   version: 2
   build-workflow:
