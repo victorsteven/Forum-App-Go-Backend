@@ -10,6 +10,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/victorsteven/fullstack/api/controllers"
 	"github.com/victorsteven/fullstack/api/models"
+	"github.com/victorsteven/fullstack/.env"
+
 )
 
 var server = controllers.Server{}
@@ -20,10 +22,11 @@ var commentInstance = models.Comment{}
 
 func TestMain(m *testing.M) {
 	var err error
-	err = godotenv.Load(os.ExpandEnv("./../.env"))
-	if err != nil {
-		log.Fatalf("Error getting env %v\n", err)
-	}
+	// err = godotenv.Load(os.ExpandEnv("./../.env"))
+	// if err != nil {
+	// 	log.Fatalf("Error getting env %v\n", err)
+	// }
+
 	Database()
 
 	os.Exit(m.Run())
