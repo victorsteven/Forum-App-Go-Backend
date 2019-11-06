@@ -2,9 +2,7 @@ version: 2 # use CircleCI 2.0
 jobs: # basic units of work in a run
   build: # runs not using Workflows must have a `build` job as entry point
     docker: # run the steps with Docker
-      # CircleCI Go images available at: https://hub.docker.com/r/circleci/golang/
       - image: circleci/golang:1.12
-      # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
       - image: circleci/postgres:9.6-alpine
         environment: # environment variables for primary container
           POSTGRES_USER: steven
@@ -12,7 +10,6 @@ jobs: # basic units of work in a run
 
     environment: # environment variables for the build itself
       GO111MODULE: "on"
-      TEST_RESULTS: /tmp/test-results # path to where test results will be saved
 
     working_directory: ~/usr/src/app   # Go module is used, so we dont need to worry about GOPATH
 
@@ -21,12 +18,10 @@ jobs: # basic units of work in a run
       - run:
           name: "Fetch dependencies"
           command: go mod download
-
-      - run: mkdir -p $TEST_RESULTS # create the test results directory
-
-      # - restore_cache:  # restores saved cache if no changes are detected since last run
-      #   keys:
-      #     - go-mod-v1-{{ checksum "go.sum" }}
+          
+      - restore_cache:  # restores saved cache if no changes are detected since last run
+        keys:
+          - go-mod-v1-{{ checksum "go.sum" }}
 
       #  Wait for Postgres to be ready before proceeding
       - run:
@@ -39,28 +34,11 @@ jobs: # basic units of work in a run
             FULLSTACK_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
           command: go test ./tests/...
 
-          # store the results of our tests in the $TEST_RESULTS directory
-          # command: |
-          #   PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
-          #   gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
-      # - run: make # pull and build dependencies for the project
-
       - save_cache:
           key: go-mod-v1-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
 
-      # - run:
-      #     name: Start service
-      #     environment:
-      #       FULLSTACK_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
-      #     command: ./workdir/contacts
-      #     background: true # keep service running and proceed to next step
-      # - store_artifacts: # upload test summary for display in Artifacts
-      #     path: /tmp/test-results
-      #     destination: raw-test-output
-      # - store_test_results: # upload test results for display in Test Summary
-      #     path: /tmp/test-results
 workflows:
   version: 2
   build-workflow:
