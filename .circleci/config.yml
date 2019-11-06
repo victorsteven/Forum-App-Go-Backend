@@ -19,9 +19,10 @@ jobs: # basic units of work in a run
           name: "Fetch dependencies"
           command: go mod download
 
-      - restore_cache:  # restores saved cache if no changes are detected since last run
-          keys:
-            - go-mod-v2-{{ checksum "go.sum" }}
+      # There is an of untarring google cloud files
+      # - restore_cache:  # restores saved cache if no changes are detected since last run
+      #     keys:
+      #       - go-mod-v2-{{ checksum "go.sum" }}
 
       #  Wait for Postgres to be ready before proceeding
       - run:
@@ -34,11 +35,10 @@ jobs: # basic units of work in a run
             FULLSTACK_DB_URL: "postgres://steven@localhost:5432/fullstack_api_test?sslmode=disable"
           command: go test -v ./tests/...
 
-      # There is an issue like:
-      - save_cache:
-          key: go-mod-v2-{{ checksum "go.sum" }}
-          paths:
-            - "/go/pkg/mod"
+      # - save_cache:
+      #     key: go-mod-v2-{{ checksum "go.sum" }}
+      #     paths:
+      #       - "/go/pkg/mod"
 
 workflows:
   version: 2
