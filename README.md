@@ -27,14 +27,14 @@
 
 ## Installations
 
-#### Clone
+### Clone
 
 - Clone this project to your local machine `https://github.com/victorsteven/Forum-App-Go-Backend`
 
-#### Setup
 
+### Setup
 
-  ##### Without Docker
+  #### Without Docker
 
   > Ensure that you have your .env set up and have created your database
     - For local, set the DB_HOST in the .env file as follows:
@@ -48,7 +48,7 @@
   - Use `http://localhost:8080` as base url for endpoints
 
 
- ##### Using Docker
+ #### Using Docker
 
   Docker is the default setting for this project
 
@@ -56,23 +56,23 @@
     ```shell
       $ DB_HOST=fullstack-postgres 
     ```    
-  > For Local Development:
-    - Create a Dockerfile file in the root directory
-    - Copy the content of the file: example.Dockerfile.dev (for only local development)
-    - Create a docker-compose.yml file in the root directory
-    - Copy the content of the file: example.docker-compose.dev.yml (for only local development)
+  ##### For Local Development:
+  - Create a Dockerfile file in the root directory
+  - Copy the content of the file: example.Dockerfile.dev (for only local development)
+  - Create a docker-compose.yml file in the root directory
+  - Copy the content of the file: example.docker-compose.dev.yml (for only local development)
 
-  > For Testing:
-    - Create a Dockerfile.test file in the root directory
-    - Copy the content of the file: example.Dockerfile.test (for only test)
-    - Create a docker-compose.test.yml file in the root directory
-    - Copy the content of the file: example.docker-compose.test.yml (for only test)
+  ##### For Testing:
+  - Create a Dockerfile.test file in the root directory
+  - Copy the content of the file: example.Dockerfile.test (for only test)
+  - Create a docker-compose.test.yml file in the root directory
+  - Copy the content of the file: example.docker-compose.test.yml (for only test)
   
-  > For Production (This should be done in the server (AWS, DigitalOcean, etc)):
-      - Create a Dockerfile file in the root directory
-      - Copy the content of the file: example.Dockerfile.prod (for production only)
-      - Create a docker-compose.yml file in the root directory
-      - Copy the content of the file: example.docker-compose.prod.yml (for production only)
+  ##### For Production (This should be done in the server (AWS, DigitalOcean, etc)):
+  - Create a Dockerfile file in the root directory
+  - Copy the content of the file: example.Dockerfile.prod (for production only)
+  - Create a docker-compose.yml file in the root directory
+  - Copy the content of the file: example.docker-compose.prod.yml (for production only)
 
   > In the root directory, run the command
   ```shell
@@ -103,6 +103,6 @@
 ## Author
 
 - Steven Victor
-   medium: medium.com/@victorsteven  
-   twitter: twitter.com/stevensunflash  
-   linkedin: linkedin.com/in/stevenchikodi
+- medium: medium.com/@victorsteven  
+- twitter: twitter.com/stevensunflash  
+- linkedin: linkedin.com/in/stevenchikodi
