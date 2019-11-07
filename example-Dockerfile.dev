@@ -13,9 +13,9 @@ RUN go mod download
 # Copy the source from the current directory to the working Directory inside the container 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 8888
 
-# Install CompileDaemon
+# Install CompileDaemon which is used for hot reload each time a file is changed
 RUN go get github.com/githubnemo/CompileDaemon
 
 # The ENTRYPOINT defines the command that will be ran when the container starts up

@@ -4,7 +4,7 @@ services:
     container_name: full_app
     build: .
     ports: 
-      - 8080:8080 
+      - 8888:8888 
     restart: on-failure
     volumes:
       - .:/usr/src/app

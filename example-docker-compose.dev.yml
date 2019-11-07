@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: ./Dockerfile.dev
     ports: 
-      - 8080:8080 
+      - 8888:8888 
     restart: on-failure
     volumes:              # without this volume mapping to the directory of our project, live reloading wont happen
       - .:/usr/src/app

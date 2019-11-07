@@ -7,12 +7,12 @@ services:
       context: .
       dockerfile: ./Dockerfile.test
     depends_on:
-      - postgres_test
+      - forum-postgres-test
       # - mysql_test
     networks:
       - forum_test
 
-  postgres_test:
+  forum-postgres-test:
     image: postgres:latest
     container_name: full_db_test_postgress
     environment:
