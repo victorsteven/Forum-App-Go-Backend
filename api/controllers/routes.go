@@ -6,9 +6,6 @@ import (
 
 func (s *Server) initializeRoutes() {
 
-	// Home Route
-	s.Router.GET("/", s.Home)
-
 	v1 := s.Router.Group("/api/v1")
 	{
 		// Login Route

@@ -2,20 +2,18 @@ package fileformat
 
 import (
 	"path"
-	"github.com/twinj/uuid"
 	"strings"
-)
 
+	"github.com/twinj/uuid"
+)
 
 func UniqueFormat(fn string) string {
 	//path.Ext() get the extension of the file
-	fileName :=  strings.TrimSuffix(fn, path.Ext(fn))
+	fileName := strings.TrimSuffix(fn, path.Ext(fn))
 	extension := path.Ext(fn)
-	//t := time.Now()
 	u := uuid.NewV4()
-	 newFileName := fileName  + "-" +  u.String() + extension
+	newFileName := fileName + "-" + u.String() + extension
 
-	 return newFileName
-
+	return newFileName
 
 }

@@ -24,6 +24,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// This enables us interact with the React Frontend
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

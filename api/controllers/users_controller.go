@@ -76,12 +76,6 @@ func (server *Server) CreateUser(c *gin.Context) {
 		"status":   http.StatusCreated,
 		"response": userCreated,
 	})
-
-	//Send welcome mail to the user:
-	// err = mailer.SendMail(userCreated)
-	// if err != nil {
-	// 	fmt.Printf("this is the sending mail error: %s\n", err)
-	// }
 }
 
 func (server *Server) GetUsers(c *gin.Context) {

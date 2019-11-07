@@ -3,10 +3,9 @@ package models
 import (
 	"html"
 
-	"github.com/jinzhu/gorm"
-
-	//"github.com/victorsteven/forum/api/security"
 	"strings"
+
+	"github.com/jinzhu/gorm"
 )
 
 type ResetPassword struct {

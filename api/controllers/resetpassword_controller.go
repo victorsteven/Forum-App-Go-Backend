@@ -126,15 +126,6 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-	// err = server.DB.Debug().Model(models.User{}).Where("email = ?", resetPassword.Email).Take(&user).Error
-	// if err != nil {
-	// 	errList["No_email"] = "Sorry, we do not recognize this email"
-	// 	c.JSON(http.StatusUnprocessableEntity, gin.H{
-	// 		"status": http.StatusUnprocessableEntity,
-	// 		"error":  errList,
-	// 	})
-	// 	return
-	// }
 	if requestBody["new_password"] == "" || requestBody["retype_password"] == "" {
 		errList["Empty_passwords"] = "Please ensure both field are entered"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{

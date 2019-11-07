@@ -1,7 +1,6 @@
 package formaterror
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -12,31 +11,25 @@ var err error
 func FormatError(errString string) map[string]string {
 
 	if strings.Contains(errString, "username") {
-		err = errors.New("Username Already Taken")
-		errorMessages["Taken_username"] = err.Error()
+		errorMessages["Taken_username"] = "Username Already Taken"
 	}
 
 	if strings.Contains(errString, "email") {
-		err = errors.New("Email Already Taken")
-		errorMessages["Taken_email"] = err.Error()
+		errorMessages["Taken_email"] = "Email Already Taken"
 
 	}
 	if strings.Contains(errString, "title") {
-		err = errors.New("Title Already Taken")
-		errorMessages["Taken_title"] = err.Error()
+		errorMessages["Taken_title"] = "Title Already Taken"
 
 	}
 	if strings.Contains(errString, "hashedPassword") {
-		err = errors.New("Incorrect Password")
-		errorMessages["Incorrect_password"] = err.Error()
+		errorMessages["Incorrect_password"] = "Incorrect Password"
 	}
 	if strings.Contains(errString, "record not found") {
-		err = errors.New("No Record Found")
-		errorMessages["No_record"] = err.Error()
+		errorMessages["No_record"] = "No Record Found"
 	}
 
 	if strings.Contains(errString, "double like") {
-		// err = errors.New("You cannot like this post twice")
 		errorMessages["Double_like"] = "You cannot like this post twice"
 	}
 
