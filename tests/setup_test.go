@@ -90,7 +90,7 @@ func seedOneUser() (models.User, error) {
 
 	user := models.User{
 		Username: "Pet",
-		Email:    "pet@gmail.com",
+		Email:    "pet@example.com",
 		Password: "password",
 	}
 
@@ -110,12 +110,12 @@ func seedUsers() ([]models.User, error) {
 	users := []models.User{
 		models.User{
 			Username: "Steven",
-			Email:    "steven@gmail.com",
+			Email:    "steven@example.com",
 			Password: "password",
 		},
 		models.User{
 			Username: "Kenny",
-			Email:    "kenny@gmail.com",
+			Email:    "kenny@example.com",
 			Password: "password",
 		},
 	}
@@ -147,7 +147,7 @@ func seedOneUserAndOnePost() (models.User, models.Post, error) {
 
 	user := models.User{
 		Username: "Sam",
-		Email:    "sam@gmail.com",
+		Email:    "sam@example.com",
 		Password: "password",
 	}
 	err := server.DB.Model(&models.User{}).Create(&user).Error
@@ -176,12 +176,12 @@ func seedUsersAndPosts() ([]models.User, []models.Post, error) {
 	var users = []models.User{
 		models.User{
 			Username: "Steven",
-			Email:    "steven@gmail.com",
+			Email:    "steven@example.com",
 			Password: "password",
 		},
 		models.User{
 			Username: "Magu",
-			Email:    "magu@gmail.com",
+			Email:    "magu@example.com",
 			Password: "password",
 		},
 	}
@@ -230,12 +230,12 @@ func seedUsersPostsAndLikes() (models.Post, []models.User, []models.Like, error)
 	var users = []models.User{
 		models.User{
 			Username: "Steven",
-			Email:    "steven@gmail.com",
+			Email:    "steven@example.com",
 			Password: "password",
 		},
 		models.User{
 			Username: "Magu",
-			Email:    "magu@gmail.com",
+			Email:    "magu@example.com",
 			Password: "password",
 		},
 	}
@@ -289,12 +289,12 @@ func seedUsersPostsAndComments() (models.Post, []models.User, []models.Comment, 
 	var users = []models.User{
 		models.User{
 			Username: "Steven",
-			Email:    "steven@gmail.com",
+			Email:    "steven@example.com",
 			Password: "password",
 		},
 		models.User{
 			Username: "Magu",
-			Email:    "magu@gmail.com",
+			Email:    "magu@example.com",
 			Password: "password",
 		},
 	}
@@ -349,7 +349,7 @@ func seedResetPassword() (models.ResetPassword, error) {
 
 	resetDetails := models.ResetPassword{
 		Token: "awesometoken",
-		Email: "pet@gmail.com",
+		Email: "pet@example.com",
 	}
 	err := server.DB.Model(&models.ResetPassword{}).Create(&resetDetails).Error
 	if err != nil {

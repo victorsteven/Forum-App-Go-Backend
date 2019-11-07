@@ -36,7 +36,7 @@ func TestSaveUser(t *testing.T) {
 	}
 	newUser := models.User{
 		ID:       1,
-		Email:    "test@gmail.com",
+		Email:    "test@example.com",
 		Username: "test",
 		Password: "password",
 	}
@@ -83,7 +83,7 @@ func TestUpdateAUser(t *testing.T) {
 	userUpdate := models.User{
 		ID:       1,
 		Username: "modiUpdate",
-		Email:    "modiupdate@gmail.com",
+		Email:    "modiupdate@example.com",
 		Password: "password",
 	}
 	updatedUser, err := userUpdate.UpdateAUser(server.DB, user.ID)

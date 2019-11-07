@@ -29,25 +29,25 @@ func TestCreateUser(t *testing.T) {
 		email      string
 	}{
 		{
-			inputJSON:  `{"username":"Pet", "email": "pet@gmail.com", "password": "password"}`,
+			inputJSON:  `{"username":"Pet", "email": "pet@example.com", "password": "password"}`,
 			statusCode: 201,
 			username:   "Pet",
-			email:      "pet@gmail.com",
+			email:      "pet@example.com",
 		},
 		{
-			inputJSON:  `{"username":"Frank", "email": "pet@gmail.com", "password": "password"}`,
+			inputJSON:  `{"username":"Frank", "email": "pet@example.com", "password": "password"}`,
 			statusCode: 500,
 		},
 		{
-			inputJSON:  `{"username":"Pet", "email": "grand@gmail.com", "password": "password"}`,
+			inputJSON:  `{"username":"Pet", "email": "grand@example.com", "password": "password"}`,
 			statusCode: 500,
 		},
 		{
-			inputJSON:  `{"username":"Kan", "email": "kangmail.com", "password": "password"}`,
+			inputJSON:  `{"username":"Kan", "email": "kanexample.com", "password": "password"}`,
 			statusCode: 422,
 		},
 		{
-			inputJSON:  `{"username": "", "email": "kan@gmail.com", "password": "password"}`,
+			inputJSON:  `{"username": "", "email": "kan@example.com", "password": "password"}`,
 			statusCode: 422,
 		},
 		{
@@ -55,7 +55,7 @@ func TestCreateUser(t *testing.T) {
 			statusCode: 422,
 		},
 		{
-			inputJSON:  `{"username": "Kan", "email": "kan@gmail.com", "password": ""}`,
+			inputJSON:  `{"username": "Kan", "email": "kan@example.com", "password": ""}`,
 			statusCode: 422,
 		},
 	}
@@ -258,88 +258,88 @@ func TestUpdateUser(t *testing.T) {
 			// In this particular test case, we changed the user's password to "newpassword". Very important to note
 			// Convert int32 to int first before converting to string
 			id:          strconv.Itoa(int(AuthID)),
-			updateJSON:  `{"email": "grand@gmail.com", "current_password": "password", "new_password": "newpassword"}`,
+			updateJSON:  `{"email": "grand@example.com", "current_password": "password", "new_password": "newpassword"}`,
 			statusCode:  200,
 			username:    AuthUsername, //the username does not change, even if a new name is provided, it will be ignored
-			updateEmail: "grand@gmail.com",
+			updateEmail: "grand@example.com",
 			tokenGiven:  tokenString,
 		},
 		{
 			// An attempt to change the username, will not work, the old name is still retained.
 			// Remember, the "current_password" is now "newpassword", changed in test 1
 			id:          strconv.Itoa(int(AuthID)),
-			updateJSON:  `{"username": "new_name", "email": "grand@gmail.com", "current_password": "newpassword", "new_password": "newpassword"}`,
+			updateJSON:  `{"username": "new_name", "email": "grand@example.com", "current_password": "newpassword", "new_password": "newpassword"}`,
 			statusCode:  200,
 			username:    AuthUsername, //irrespective of the username inputed above, the old one is still used
-			updateEmail: "grand@gmail.com",
+			updateEmail: "grand@example.com",
 			tokenGiven:  tokenString,
 		},
 		{
 			// The user can update only his email address
 			id:          strconv.Itoa(int(AuthID)),
-			updateJSON:  `{"email": "fred@gmail.com"}`,
+			updateJSON:  `{"email": "fred@example.com"}`,
 			statusCode:  200,
 			username:    AuthUsername,
-			updateEmail: "fred@gmail.com",
+			updateEmail: "fred@example.com",
 			tokenGiven:  tokenString,
 		},
 		{
 			id:          strconv.Itoa(int(AuthID)),
-			updateJSON:  `{"email": "alex@gmail.com", "current_password": "", "new_password": ""}`,
+			updateJSON:  `{"email": "alex@example.com", "current_password": "", "new_password": ""}`,
 			statusCode:  200,
 			username:    AuthUsername,
-			updateEmail: "alex@gmail.com",
+			updateEmail: "alex@example.com",
 			tokenGiven:  tokenString,
 		},
 		{
 			// When password the "current_password" is given and does not match with the one in the database
 			id:          strconv.Itoa(int(AuthID)),
-			updateJSON:  `{"email": "alex@gmail.com", "current_password": "wrongpassword", "new_password": "password"}`,
+			updateJSON:  `{"email": "alex@example.com", "current_password": "wrongpassword", "new_password": "password"}`,
 			statusCode:  422,
-			updateEmail: "alex@gmail.com",
+			updateEmail: "alex@example.com",
 			tokenGiven:  tokenString,
 		},
 		{
 			// When password the "current_password" is correct but the "new_password" field is not given
 			id:          strconv.Itoa(int(AuthID)),
-			updateJSON:  `{"email": "alex@gmail.com", "current_password": "newpassword", "new_password": ""}`,
+			updateJSON:  `{"email": "alex@example.com", "current_password": "newpassword", "new_password": ""}`,
 			statusCode:  422,
-			updateEmail: "alex@gmail.com",
+			updateEmail: "alex@example.com",
 			tokenGiven:  tokenString,
 		},
 		{
 			// When password the "current_password" is correct but the "new_password" field is not up to 6 characters
 			id:          strconv.Itoa(int(AuthID)),
-			updateJSON:  `{"email": "alex@gmail.com", "current_password": "newpassword", "new_password": "pass"}`,
+			updateJSON:  `{"email": "alex@example.com", "current_password": "newpassword", "new_password": "pass"}`,
 			statusCode:  422,
-			updateEmail: "alex@gmail.com",
+			updateEmail: "alex@example.com",
 			tokenGiven:  tokenString,
 		},
 		{
 			// When no token was passed (when the user is not authenticated)
 			id:         strconv.Itoa(int(AuthID)),
-			updateJSON: `{"email": "man@gmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			updateJSON: `{"email": "man@example.com", "current_password": "newpassword", "new_password": "password"}`,
 			statusCode: 401,
 			tokenGiven: "",
 		},
 		{
 			// When incorrect token was passed
 			id:         strconv.Itoa(int(AuthID)),
-			updateJSON: `{"email": "man@gmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			updateJSON: `{"email": "man@example.com", "current_password": "newpassword", "new_password": "password"}`,
 			statusCode: 401,
 			tokenGiven: "This is incorrect token",
 		},
 		{
-			// Remember "kenny@gmail.com" belongs to user 2, so, user 1 cannot use some else email that is in our database
+			// Remember "kenny@example.com" belongs to user 2, so, user 1 cannot use some else email that is in our database
 			id:         strconv.Itoa(int(AuthID)),
-			updateJSON: `{"email": "kenny@gmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			updateJSON: `{"email": "kenny@example.com", "current_password": "newpassword", "new_password": "password"}`,
 			statusCode: 500,
 			tokenGiven: tokenString,
 		},
 		{
 			// When the email provided is invalid
 			id:         strconv.Itoa(int(AuthID)),
-			updateJSON: `{"email": "notgmail.com", "current_password": "newpassword", "new_password": "password"}`,
+			updateJSON: `{"email": "notexample.com", "current_password": "newpassword", "new_password": "password"}`,
 			statusCode: 422,
 			tokenGiven: tokenString,
 		},

@@ -31,7 +31,7 @@ func TestForgotPassword(t *testing.T) {
 	}{
 		{
 			// When the user input invalid email:
-			inputJSON:  `{"email": "petgmail.com"}`,
+			inputJSON:  `{"email": "petexample.com"}`,
 			statusCode: 422,
 		},
 		{
@@ -56,7 +56,7 @@ func TestForgotPassword(t *testing.T) {
 		// You can mock the process using Interface, or if you have a better idea,
 		// You can raise a PR.
 
-		// inputJSON:  `{"email": "pet@gmail.com"}`, //the seeded user
+		// inputJSON:  `{"email": "pet@example.com"}`, //the seeded user
 		// statusCode: 200,
 		// },
 	}

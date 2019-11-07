@@ -81,22 +81,22 @@ func TestLogin(t *testing.T) {
 		password   string
 	}{
 		{
-			inputJSON:  `{"email": "pet@gmail.com", "password": "password"}`,
+			inputJSON:  `{"email": "pet@example.com", "password": "password"}`,
 			statusCode: 200,
 			username:   user.Username,
 			email:      user.Email,
 		},
 		{
-			inputJSON:  `{"email": "pet@gmail.com", "password": "wrong password"}`,
+			inputJSON:  `{"email": "pet@example.com", "password": "wrong password"}`,
 			statusCode: 422,
 		},
 		{
 			// this record does not exist
-			inputJSON:  `{"email": "frank@gmail.com", "password": "password"}`,
+			inputJSON:  `{"email": "frank@example.com", "password": "password"}`,
 			statusCode: 422,
 		},
 		{
-			inputJSON:  `{"email": "kangmail.com", "password": "password"}`,
+			inputJSON:  `{"email": "kanexample.com", "password": "password"}`,
 			statusCode: 422,
 		},
 		{
@@ -104,7 +104,7 @@ func TestLogin(t *testing.T) {
 			statusCode: 422,
 		},
 		{
-			inputJSON:  `{"email": "kan@gmail.com", "password": ""}`,
+			inputJSON:  `{"email": "kan@example.com", "password": ""}`,
 			statusCode: 422,
 		},
 	}

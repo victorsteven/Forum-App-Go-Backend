@@ -88,7 +88,7 @@ func TestUpdateAPost(t *testing.T) {
 	postUpdate := models.Post{
 		ID:       1,
 		Title:    "modiUpdate",
-		Content:  "modiupdate@gmail.com",
+		Content:  "modiupdate@example.com",
 		AuthorID: post.AuthorID,
 	}
 	updatedPost, err := postUpdate.UpdateAPost(server.DB)
