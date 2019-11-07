@@ -18,6 +18,7 @@ var likeInstance = models.Like{}
 var commentInstance = models.Comment{}
 
 func TestMain(m *testing.M) {
+	// UNCOMMENT THIS WHILE TESTING ON LOCAL(WITHOUT USING CIRCLE CI)
 	// var err error
 	// err = godotenv.Load(os.ExpandEnv("./../.env"))
 	// if err != nil {
@@ -34,7 +35,7 @@ func Database() {
 
 	var err error
 
-	// THIS WAS THE EARLIER IMPLEMENTATION WITHOUT CIRCLE CI
+	// UNCOMMENT THIS WHILE TESTING ON LOCAL(WITHOUT USING CIRCLE CI)
 	// TestDbDriver := os.Getenv("TEST_DB_DRIVER")
 	// if TestDbDriver == "mysql" {
 	// 	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", os.Getenv("TEST_DB_USER"), os.Getenv("TEST_DB_PASSWORD"), os.Getenv("TEST_DB_HOST"), os.Getenv("TEST_DB_PORT"), os.Getenv("TEST_DB_NAME"))
@@ -57,6 +58,7 @@ func Database() {
 	// 	}
 	// }
 
+	// IF YOU ARE USING CIRCLE CI(THAT IS, YOU WISH TO PUSH THIS CODE TO A REPOSITORY)
 	// WE HAVE TO INPUT TESTING DATA MANUALLY BECAUSE CIRCLECI, CANNOT READ THE ".env" FILE WHICH, WE WOULD HAVE ADDED THE TEST CONFIG THERE
 	// SO MANUALLY ADD THE NAME OF THE DATABASE, THE USER AND THE PASSWORD, AS SEEN BELOW:
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "forum_db_test", "password")
