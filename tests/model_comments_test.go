@@ -97,3 +97,31 @@ func TestDeleteCommentsForAPost(t *testing.T) {
 	}
 	assert.Equal(t, numberDeleted, int64(2))
 }
+
+func TestDeleteCommentsForAUser(t *testing.T) {
+
+	var userID uint32
+
+	err := refreshUserPostAndCommentTable()
+	if err != nil {
+		log.Fatalf("Error refreshing user, post and comment table %v\n", err)
+	}
+	_, users, _, err := seedUsersPostsAndComments()
+	if err != nil {
+		log.Fatalf("Error seeding user, post and comment table %v\n", err)
+	}
+
+	// get the first user. When you delete this user, also delete his comment
+	for _, v := range users {
+		if v.ID == 2 {
+			continue
+		}
+		userID = v.ID
+	}
+	numberDeleted, err := commentInstance.DeleteUserComments(server.DB, userID)
+	if err != nil {
+		t.Errorf("this is the error deleting the comment: %v\n", err)
+		return
+	}
+	assert.Equal(t, numberDeleted, int64(1))
+}

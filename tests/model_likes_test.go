@@ -77,6 +77,7 @@ func TestDeleteALike(t *testing.T) {
 	assert.Equal(t, deletedLike.ID, likeInstance.ID)
 }
 
+// When a post is deleted, delete its likes
 func TestDeleteLikesForAPost(t *testing.T) {
 
 	err := refreshUserPostAndLikeTable()
@@ -93,4 +94,36 @@ func TestDeleteLikesForAPost(t *testing.T) {
 		return
 	}
 	assert.Equal(t, numberDeleted, int64(2))
+}
+
+// When a user is deleted, delete its likes
+func TestDeleteLikesForAUser(t *testing.T) {
+	var userID uint32
+	err := refreshUserPostAndLikeTable()
+	if err != nil {
+		log.Fatalf("Error refreshing user, post and like table %v\n", err)
+	}
+	_, users, likes, err := seedUsersPostsAndLikes()
+	if err != nil {
+		log.Fatalf("Error seeding user, post and like table %v\n", err)
+	}
+	for _, v := range likes {
+		if v.ID == 2 {
+			continue
+		}
+		likeInstance.ID = v.ID //likeInstance is defined in setup_test.go
+	}
+	// get the first user, this user has one like
+	for _, v := range users {
+		if v.ID == 2 {
+			continue
+		}
+		userID = v.ID
+	}
+	numberDeleted, err := likeInstance.DeleteUserLikes(server.DB, userID)
+	if err != nil {
+		t.Errorf("this is the error deleting the like: %v\n", err)
+		return
+	}
+	assert.Equal(t, numberDeleted, int64(1))
 }

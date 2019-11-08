@@ -503,7 +503,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 	like := models.Like{}
 	post := models.Post{}
 
-	_, err = post.DeleteUserPosts(server.DB, uid)
+	_, err = post.DeleteUserPosts(server.DB, uint32(uid))
 	if err != nil {
 		errList["Other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -512,7 +512,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 		})
 		return
 	}
-	_, err = comment.DeleteUserComments(server.DB, uid)
+	_, err = comment.DeleteUserComments(server.DB, uint32(uid))
 	if err != nil {
 		errList["Other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -521,7 +521,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 		})
 		return
 	}
-	_, err = like.DeleteUserLikes(server.DB, uid)
+	_, err = like.DeleteUserLikes(server.DB, uint32(uid))
 	if err != nil {
 		errList["Other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{

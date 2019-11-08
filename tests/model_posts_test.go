@@ -119,3 +119,22 @@ func TestDeleteAPost(t *testing.T) {
 	}
 	assert.Equal(t, isDeleted, int64(1))
 }
+
+func TestDeleteUserPosts(t *testing.T) {
+
+	err := refreshUserAndPostTable()
+	if err != nil {
+		log.Fatalf("Error refreshing user and post table: %v\n", err)
+	}
+	user, _, err := seedOneUserAndOnePost()
+	if err != nil {
+		log.Fatalf("Error Seeding tables")
+	}
+
+	numberDeleted, err := postInstance.DeleteUserPosts(server.DB, user.ID)
+	if err != nil {
+		t.Errorf("this is the error deleting the post: %v\n", err)
+		return
+	}
+	assert.Equal(t, numberDeleted, int64(1))
+}
