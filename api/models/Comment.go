@@ -108,6 +108,16 @@ func (c *Comment) DeleteAComment(db *gorm.DB) (int64, error) {
 	return db.RowsAffected, nil
 }
 
+//When a user is deleted, we also delete the comments that the user had
+func (c *Comment) DeleteUserComments(db *gorm.DB, uid uint64) (int64, error) {
+	comments := []Comment{}
+	db = db.Debug().Model(&Comment{}).Where("user_id = ?", uid).Find(&comments).Delete(&comments)
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	return db.RowsAffected, nil
+}
+
 //When a post is deleted, we also delete the comments that the post had
 func (c *Comment) DeletePostComments(db *gorm.DB, pid uint64) (int64, error) {
 	comments := []Comment{}

@@ -9,7 +9,7 @@ jobs: # basic units of work in a run
           POSTGRES_DB: forum_db_test
 
     environment: # environment variables for the build itself
-      GO111MODULE: "on"
+      GO111MODULE: "on" #we don't rely on GOPATH
 
     working_directory: ~/usr/src/app   # Go module is used, so we dont need to worry about GOPATH
 
@@ -28,7 +28,7 @@ jobs: # basic units of work in a run
           name: Run unit tests
           environment: # environment variables for the database url and path to migration files
             FORUM_DB_URL: "postgres://steven@localhost:5432/forum_db_test?sslmode=disable"
-          command: go test -v ./tests/...
+          command: go test -v ./tests/...  # our test is inside the "tests" folder, so target only that
 
 workflows:
   version: 2

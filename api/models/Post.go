@@ -142,3 +142,13 @@ func (p *Post) FindUserPosts(db *gorm.DB, uid uint32) (*[]Post, error) {
 	}
 	return &posts, nil
 }
+
+//When a user is deleted, we also delete the post that the user had
+func (c *Post) DeleteUserPosts(db *gorm.DB, uid uint64) (int64, error) {
+	posts := []Post{}
+	db = db.Debug().Model(&Post{}).Where("author_id = ?", uid).Find(&posts).Delete(&posts)
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	return db.RowsAffected, nil
+}

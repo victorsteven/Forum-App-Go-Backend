@@ -66,6 +66,16 @@ func (l *Like) GetLikesInfo(db *gorm.DB, pid uint64) (*[]Like, error) {
 }
 
 //When a post is deleted, we also delete the likes that the post had
+func (l *Like) DeleteUserLikes(db *gorm.DB, uid uint64) (int64, error) {
+	likes := []Like{}
+	db = db.Debug().Model(&Like{}).Where("user_id = ?", uid).Find(&likes).Delete(&likes)
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	return db.RowsAffected, nil
+}
+
+//When a post is deleted, we also delete the likes that the post had
 func (l *Like) DeletePostLikes(db *gorm.DB, pid uint64) (int64, error) {
 	likes := []Like{}
 	db = db.Debug().Model(&Like{}).Where("post_id = ?", pid).Find(&likes).Delete(&likes)
