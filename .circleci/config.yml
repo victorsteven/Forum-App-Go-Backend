@@ -19,11 +19,6 @@ jobs: # basic units of work in a run
           name: "Fetch dependencies"
           command: go mod download
 
-      # There is an of untarring google cloud files
-      # - restore_cache:  # restores saved cache if no changes are detected since last run
-      #     keys:
-      #       - go-mod-v2-{{ checksum "go.sum" }}
-
       #  Wait for Postgres to be ready before proceeding
       - run:
           name: Waiting for Postgres to be ready
@@ -34,11 +29,6 @@ jobs: # basic units of work in a run
           environment: # environment variables for the database url and path to migration files
             FORUM_DB_URL: "postgres://steven@localhost:5432/forum_db_test?sslmode=disable"
           command: go test -v ./tests/...
-
-      # - save_cache:
-      #     key: go-mod-v2-{{ checksum "go.sum" }}
-      #     paths:
-      #       - "/go/pkg/mod"
 
 workflows:
   version: 2

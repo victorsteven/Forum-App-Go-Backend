@@ -62,7 +62,6 @@ func Database() {
 	//////////////////////////////////  COMMENT THIS WHILE TESTING ON LOCAL(WITHOUT USING CIRCLE CI)  //////////////////////
 	// WE HAVE TO INPUT TESTING DATA MANUALLY BECAUSE CIRCLECI, CANNOT READ THE ".env" FILE WHICH, WE WOULD HAVE ADDED THE TEST CONFIG THERE
 	// SO MANUALLY ADD THE NAME OF THE DATABASE, THE USER AND THE PASSWORD, AS SEEN BELOW:
-
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "forum_db_test", "password")
 	server.DB, err = gorm.Open("postgres", DBURL)
 	if err != nil {
