@@ -498,7 +498,7 @@ func (server *Server) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	// Also delete the posts, likes and the comments that this user created:
+	// Also delete the posts, likes and the comments that this user created if any:
 	comment := models.Comment{}
 	like := models.Like{}
 	post := models.Post{}
