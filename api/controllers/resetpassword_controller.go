@@ -156,8 +156,6 @@ func (server *Server) ResetPassword(c *gin.Context) {
 		user.Password = requestBody["new_password"]
 		user.Email = resetPassword.Email
 
-		fmt.Println("this is the user email: ", resetPassword.Email)
-
 		//update the password
 		user.Prepare()
 		err := user.UpdatePassword(server.DB)

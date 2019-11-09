@@ -406,7 +406,7 @@ func (server *Server) UpdateUser(c *gin.Context) {
 			})
 			return
 		}
-		//if they do, check that the formal password is correct
+		//if they do, check that the former password is correct
 		err = security.VerifyPassword(formerUser.Password, requestBody["current_password"])
 		if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 			errList["Password_mismatch"] = "The password not correct"

@@ -220,6 +220,13 @@ func (u *User) DeleteAUser(db *gorm.DB, uid uint32) (int64, error) {
 }
 
 func (u *User) UpdatePassword(db *gorm.DB) error {
+
+	// To hash the password
+	err := u.BeforeSave()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	db = db.Debug().Model(&User{}).Where("email = ?", u.Email).Take(&User{}).UpdateColumns(
 		map[string]interface{}{
 			"password":  u.Password,
