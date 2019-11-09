@@ -225,9 +225,9 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 	defer f.Close()
 
 	size := file.Size
-	//The image should not be more than 3mb
-	if size > int64(3072000) {
-		errList["Too_large"] = "Sorry, Please upload an Image of 3MB or less"
+	//The image should not be more than 500KB
+	if size > int64(512000) {
+		errList["Too_large"] = "Sorry, Please upload an Image of 500KB or less"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
 			"error":  errList,
