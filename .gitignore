@@ -4,5 +4,4 @@ docker-compose*
 .vscode
 forum # Dont push the local binary
 .DS_Store
-data/
-init-letsencrypt.sh
+
