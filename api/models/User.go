@@ -48,7 +48,7 @@ func (u *User) AfterFind() (err error) {
 		u.AvatarPath = os.Getenv("DO_SPACES_URL") + u.AvatarPath
 	}
 	//dont return the user password
-	//u.Password = ""
+	u.Password = ""
 	return nil
 }
 
