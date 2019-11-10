@@ -17,8 +17,9 @@ func (s *Server) initializeRoutes() {
 
 		//Users routes
 		v1.POST("/users", s.CreateUser)
-		v1.GET("/users", s.GetUsers)
-		v1.GET("/users/:id", s.GetUser)
+		// The user of the app have no business getting all the users.
+		// v1.GET("/users", s.GetUsers)
+		// v1.GET("/users/:id", s.GetUser)
 		v1.PUT("/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateUser)
 		v1.PUT("/avatar/users/:id", middlewares.TokenAuthMiddleware(), s.UpdateAvatar)
 		v1.DELETE("/users/:id", middlewares.TokenAuthMiddleware(), s.DeleteUser)
