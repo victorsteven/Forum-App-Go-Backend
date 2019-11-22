@@ -74,8 +74,9 @@ func (server *Server) ForgotPassword(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println("THIS OCCURRED HERE")
 	//Send welcome mail to the user:
-	err = mailer.SendResetPassword(resetDetails.Email, os.Getenv("SENDGRID_FROM"), resetDetails.Token, os.Getenv("SENDGRID_API_KEY"), os.Getenv("APP_ENV"))
+	response, err := mailer.SendMail.SendResetPassword(resetDetails.Email, os.Getenv("SENDGRID_FROM"), resetDetails.Token, os.Getenv("SENDGRID_API_KEY"), os.Getenv("APP_ENV"))
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"status": http.StatusUnprocessableEntity,
@@ -83,10 +84,9 @@ func (server *Server) ForgotPassword(c *gin.Context) {
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":   http.StatusOK,
-		"response": "Success, Please click on the link provided in your email",
+		"response": response.RespBody,
 	})
 }
 

@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/victorsteven/forum/api/mailer"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +13,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestForgotPassword(t *testing.T) {
+var (
+	sendMailFunc func(ToUser string, FromAdmin string, Token string, Sendgridkey string, AppEnv string) (*mailer.EmailResponse, error)
+)
+type sendMailMock struct {}
+
+func (sm *sendMailMock) SendResetPassword(ToUser string, FromAdmin string, Token string, Sendgridkey string, AppEnv string) (*mailer.EmailResponse, error) {
+	return sendMailFunc(ToUser, FromAdmin, Token, Sendgridkey, AppEnv)
+}
+
+func TestForgotPasswordSuccess(t *testing.T) {
+
+	//In this test, we will simulate sending mail
 
 	gin.SetMode(gin.TestMode)
 
@@ -24,6 +36,56 @@ func TestForgotPassword(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	//Since we are mocking sending the email, we are going to call the fake mail function:
+	mailer.SendMail = &sendMailMock{} //this is where the magic happen, to deceive the app that we are sending real email
+
+	//We send the mail and tell it the response we want
+	sendMailFunc = func(ToUser string, FromAdmin string, Token string, Sendgridkey string, AppEnv string) (*mailer.EmailResponse, error) {
+		return &mailer.EmailResponse{
+			Status:   http.StatusOK,
+			RespBody: "Success, Please click on the link provided in your email",
+		}, nil
+	}
+		inputJSON :=  `{"email": "pet@example.com"}` //the seeded user
+		r := gin.Default()
+		r.POST("/password/forgot", server.ForgotPassword)
+		req, err := http.NewRequest(http.MethodPost, "/password/forgot", bytes.NewBufferString(inputJSON))
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.ServeHTTP(rr, req)
+
+		responseInterface := make(map[string]interface{})
+		err = json.Unmarshal([]byte(rr.Body.String()), &responseInterface)
+		if err != nil {
+			t.Errorf("Cannot convert to json: %v", err)
+		}
+		message := responseInterface["response"]
+		status := responseInterface["status"]
+
+		assert.Equal(t, rr.Code, int(status.(float64))) //we convert interface to string.
+		assert.EqualValues(t, "Success, Please click on the link provided in your email", message)
+}
+
+
+func TestForgotPasswordFailures(t *testing.T) {
+
+	//In this test, we dont need to mock the email because we will never call the send mail method
+
+	gin.SetMode(gin.TestMode)
+
+	err := refreshUserAndResetPasswordTable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = seedOneUser()
+	if err != nil {
+		log.Fatal(err)
+	}
+	//Since we are mocking sending the email, we are going to call the fake mail function:
+	mailer.SendMail = &sendMailMock{} //this is where the magic happen, to deceive the app that we are sending real email
+
 	samples := []struct {
 		id         string
 		inputJSON  string
@@ -49,16 +111,6 @@ func TestForgotPassword(t *testing.T) {
 			inputJSON:  `{"email": 123}`,
 			statusCode: 422,
 		},
-		// {
-		// We comment the passing test. Why?
-		//It will actually send the mail
-		// This is not ideal in a testing environment
-		// You can mock the process using Interface, or if you have a better idea,
-		// You can raise a PR.
-
-		// inputJSON:  `{"email": "pet@example.com"}`, //the seeded user
-		// statusCode: 200,
-		// },
 	}
 	for _, v := range samples {
 		r := gin.Default()
@@ -76,12 +128,6 @@ func TestForgotPassword(t *testing.T) {
 			t.Errorf("Cannot convert to json: %v", err)
 		}
 		assert.Equal(t, rr.Code, v.statusCode)
-
-		// This is commented because, it not a good idea of sending real email while testing(it will also consume time)
-		// if v.statusCode == 200 {
-		// 	responseMap := responseInterface["response"]
-		// 	assert.Equal(t, responseMap, "Success, Please click on the link provided in your email")
-		// }
 		if v.statusCode == 422 {
 			responseMap := responseInterface["error"].(map[string]interface{})
 

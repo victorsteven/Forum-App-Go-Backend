@@ -1,6 +1,7 @@
 package mailer
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/matcornic/hermes/v2"
@@ -8,7 +9,21 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-func SendResetPassword(ToUser string, FromAdmin string, Token string, Sendgridkey string, AppEnv string) error {
+type sendMail struct {}
+
+type SendMailer interface {
+	SendResetPassword(string, string, string, string, string)  (*EmailResponse, error)
+}
+var (
+	SendMail SendMailer = &sendMail{} //this is useful when we start testing
+)
+
+type EmailResponse struct {
+	Status int
+	RespBody string
+}
+
+func (s *sendMail) SendResetPassword(ToUser string, FromAdmin string, Token string, Sendgridkey string, AppEnv string) (*EmailResponse, error) {
 	h := hermes.Hermes{
 		Product: hermes.Product{
 			Name: "SeamFlow",
@@ -44,7 +59,7 @@ func SendResetPassword(ToUser string, FromAdmin string, Token string, Sendgridke
 	}
 	emailBody, err := h.GenerateHTML(email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	from := mail.NewEmail("SeamFlow", FromAdmin)
 	subject := "Reset Password"
@@ -53,7 +68,10 @@ func SendResetPassword(ToUser string, FromAdmin string, Token string, Sendgridke
 	client := sendgrid.NewSendClient(Sendgridkey)
 	_, err = client.Send(message)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &EmailResponse{
+		Status:   http.StatusOK,
+		RespBody: "Success, Please click on the link provided in your email",
+	}, nil
 }
