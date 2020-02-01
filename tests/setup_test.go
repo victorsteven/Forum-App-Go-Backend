@@ -20,7 +20,7 @@ var commentInstance = models.Comment{}
 
 func TestMain(m *testing.M) {
 	// UNCOMMENT THIS WHILE TESTING ON LOCAL(WITHOUT USING CIRCLE CI), BUT LEAVE IT COMMENTED IF YOU ARE USING CIRCLE CI
-	if _, err := os.Stat("./../.env"); !os.IsNotExist(err) {
+	if _, err := os.Stat("./.env"); os.IsNotExist(err) {
 		var err error
 		err = godotenv.Load(os.ExpandEnv("./../.env"))
 		if err != nil {
