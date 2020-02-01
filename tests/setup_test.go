@@ -19,19 +19,31 @@ var likeInstance = models.Like{}
 var commentInstance = models.Comment{}
 
 func TestMain(m *testing.M) {
-	// UNCOMMENT THIS WHILE TESTING ON LOCAL(WITHOUT USING CIRCLE CI), BUT LEAVE IT COMMENTED IF YOU ARE USING CIRCLE CI
-	if _, err := os.Stat("./.env"); os.IsNotExist(err) {
+	//Using we add our .env in .gitignore, Circle CI cannot see it, so see the else statement
+	if _, err := os.Stat("./../.env"); !os.IsNotExist(err) {
 		var err error
 		err = godotenv.Load(os.ExpandEnv("./../.env"))
 		if err != nil {
 			log.Fatalf("Error getting env %v\n", err)
 		}
+		Database()
+	} else {
+		CIBuild()
 	}
-
-	Database()
-
 	os.Exit(m.Run())
+}
 
+//When using CircleCI
+func CIBuild() {
+	var err error
+	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "forum_db_test", "password")
+	server.DB, err = gorm.Open("postgres", DBURL)
+	if err != nil {
+		fmt.Printf("Cannot connect to %s database\n", "postgres")
+		log.Fatal("This is the error:", err)
+	} else {
+		fmt.Printf("We are connected to the %s database\n", "postgres")
+	}
 }
 
 func Database() {
