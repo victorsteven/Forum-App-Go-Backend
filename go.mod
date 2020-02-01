@@ -29,7 +29,9 @@ require (
 	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
+	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/myesui/uuid v1.0.0 // indirect
+	github.com/rpip/paystack-go v0.0.0-20180509111153-5333b023a74e // indirect
 	github.com/rs/cors v1.7.0
 	github.com/sendgrid/rest v2.4.1+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
