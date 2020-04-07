@@ -12,9 +12,9 @@ require (
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/creack/pty v1.1.9 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/gin-contrib/cors v1.3.0
+	github.com/gin-contrib/cors v1.3.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/contrib v0.0.0-20190923054218-35076c1b2bea
+	github.com/gin-gonic/contrib v0.0.0-20190923054218-35076c1b2bea // indirect
 	github.com/gin-gonic/gin v1.4.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/uuid v1.1.1 // indirect
@@ -28,11 +28,12 @@ require (
 	github.com/matcornic/hermes/v2 v2.0.2
 	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
+	github.com/minio/minio-go/v6 v6.0.52
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/myesui/uuid v1.0.0 // indirect
 	github.com/rpip/paystack-go v0.0.0-20180509111153-5333b023a74e // indirect
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/sendgrid/rest v2.4.1+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
 	github.com/stretchr/objx v0.2.0 // indirect
@@ -47,6 +48,5 @@ require (
 	golang.org/x/tools v0.0.0-20191011211836-4c025a95b26e // indirect
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1
 	gopkg.in/yaml.v2 v2.2.4 // indirect
 )

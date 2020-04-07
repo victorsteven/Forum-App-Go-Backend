@@ -479,6 +479,8 @@ func TestDeleteUser(t *testing.T) {
 		r.DELETE("/users/:id", server.DeleteUser)
 		req, _ := http.NewRequest(http.MethodDelete, "/users/"+v.id, nil)
 		req.Header.Set("Authorization", v.tokenGiven)
+
+		fmt.Println("FORM REQUEST: ", req.Header)
 		rr := httptest.NewRecorder()
 		r.ServeHTTP(rr, req)
 

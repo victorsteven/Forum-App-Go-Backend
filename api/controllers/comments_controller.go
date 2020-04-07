@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -15,6 +16,10 @@ import (
 func (server *Server) CreateComment(c *gin.Context) {
 	//clear previous error if any
 	errList = map[string]string{}
+
+	fmt.Println("hello")
+	//fmt.Println("hello mine")
+
 
 	postID := c.Param("id")
 	pid, err := strconv.ParseUint(postID, 10, 64)
